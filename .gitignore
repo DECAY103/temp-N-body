@@ -1,0 +1,98 @@
+# ==============================================================================
+# Build Artifacts & CMake
+# ==============================================================================
+build/
+bin/
+lib/
+out/
+dist/
+
+# Compiled Object Files and Libraries
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+
+# CMake In-Source Build Artifacts
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+CTestTestfile.cmake
+Testing/
+*.ninja
+.ninja_*
+
+# Executables & Binaries
+al_bh
+test_force
+test_load_balancer
+test_morton
+test_octree
+test_partition
+*.out
+*.exe
+
+# Profiling, Core Dumps & Logs
+gmon.out
+vgcore.*
+core
+core.*
+*.log
+
+# ==============================================================================
+# Python Artifacts & Virtual Environments
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.eggs/
+
+# ==============================================================================
+# Operating System & IDEs
+# ==============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# ==============================================================================
+# Agent, IDE & Tool Artifacts
+# ==============================================================================
+.agent/
+.agents/
+.gemini/
+.claude/
+.codex/
+.impeccable/config.local.json
+.impeccable/live/

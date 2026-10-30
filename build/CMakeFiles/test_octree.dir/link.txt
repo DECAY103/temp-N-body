@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/test_octree.dir/link.d CMakeFiles/test_octree.dir/tests/test_octree.cpp.o CMakeFiles/test_octree.dir/src/octree.cpp.o CMakeFiles/test_octree.dir/src/octree_pointer.cpp.o CMakeFiles/test_octree.dir/src/morton.cpp.o CMakeFiles/test_octree.dir/src/particle_generator.cpp.o -o test_octree

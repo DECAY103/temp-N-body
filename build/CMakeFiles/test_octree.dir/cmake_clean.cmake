@@ -1,0 +1,20 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/test_octree.dir/link.d"
+  "CMakeFiles/test_octree.dir/src/morton.cpp.o"
+  "CMakeFiles/test_octree.dir/src/morton.cpp.o.d"
+  "CMakeFiles/test_octree.dir/src/octree.cpp.o"
+  "CMakeFiles/test_octree.dir/src/octree.cpp.o.d"
+  "CMakeFiles/test_octree.dir/src/octree_pointer.cpp.o"
+  "CMakeFiles/test_octree.dir/src/octree_pointer.cpp.o.d"
+  "CMakeFiles/test_octree.dir/src/particle_generator.cpp.o"
+  "CMakeFiles/test_octree.dir/src/particle_generator.cpp.o.d"
+  "CMakeFiles/test_octree.dir/tests/test_octree.cpp.o"
+  "CMakeFiles/test_octree.dir/tests/test_octree.cpp.o.d"
+  "test_octree"
+  "test_octree.pdb"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/test_octree.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()
