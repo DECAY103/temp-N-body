@@ -8,6 +8,7 @@
 #include "metrics.hpp"
 #include "partition.hpp"
 #include "load_balancer.hpp"
+#include "communication.hpp"
 #include <chrono>
 #include <iostream>
 #include <vector>
@@ -17,16 +18,6 @@ namespace albh {
 
 // ============================================================================
 // Serial Simulation Driver
-//
-// Runs the complete N-body simulation on a single process.
-// Pipeline per timestep:
-//   1. Half-kick (leapfrog step 1)
-//   2. Drift (leapfrog step 2)
-//   3. Compute Morton keys and sort particles (for spatial locality)
-//   4. Build Octree
-//   5. Compute forces
-//   6. Final half-kick (leapfrog step 4)
-//   7. Record metrics & dump particles
 // ============================================================================
 void run_serial_simulation(std::vector<Particle>& particles, const SimConfig& config) {
     auto wall_clock = []() {
@@ -46,43 +37,34 @@ void run_serial_simulation(std::vector<Particle>& particles, const SimConfig& co
     std::cout << "\n[Serial Simulation] Starting " << config.timesteps
               << " timesteps with " << N << " particles\n\n";
 
-    // --- Initial force computation ---
-    {
-        compute_and_sort_by_morton(particles, config.box_size);
-
-        if (config.use_linearized_tree) {
-            lin_tree.build(particles, 0.0, 0.0, 0.0, config.box_size);
-            compute_forces_linearized(particles, lin_tree,
-                                       config.G, config.theta, config.softening,
-                                       config.num_threads);
-        } else {
-            ptr_tree.build(particles, 0.0, 0.0, 0.0, config.box_size);
-            compute_forces_pointer(particles, ptr_tree,
-                                    config.G, config.theta, config.softening,
-                                    config.num_threads);
-        }
+    // Initial force computation
+    compute_and_sort_by_morton(particles, config.box_size);
+    if (config.use_linearized_tree) {
+        lin_tree.build(particles, 0.0, 0.0, 0.0, config.box_size);
+        compute_forces_linearized(particles, lin_tree,
+                                   config.G, config.theta, config.softening,
+                                   config.num_threads);
+    } else {
+        ptr_tree.build(particles, 0.0, 0.0, 0.0, config.box_size);
+        compute_forces_pointer(particles, ptr_tree,
+                                config.G, config.theta, config.softening,
+                                config.num_threads);
     }
 
     if (config.dump_particles) {
         dump_particle_state(config.output_dir, 0, particles);
     }
 
-    // --- Main simulation loop ---
     for (int step = 1; step <= config.timesteps; ++step) {
         auto t_step_start = wall_clock();
 
-        // Step 1: Half-kick
         leapfrog_kick_half(particles, config.dt);
-
-        // Step 2: Drift
         leapfrog_drift(particles, config.dt);
 
-        // Step 3: Morton sort
         auto t_sort_start = wall_clock();
         compute_and_sort_by_morton(particles, config.box_size);
         auto t_sort_end = wall_clock();
 
-        // Step 4: Build tree
         auto t_tree_start = wall_clock();
         if (config.use_linearized_tree) {
             lin_tree.build(particles, 0.0, 0.0, 0.0, config.box_size);
@@ -91,7 +73,6 @@ void run_serial_simulation(std::vector<Particle>& particles, const SimConfig& co
         }
         auto t_tree_end = wall_clock();
 
-        // Step 5: Compute forces
         auto t_force_start = wall_clock();
         if (config.use_linearized_tree) {
             compute_forces_linearized(particles, lin_tree,
@@ -104,12 +85,9 @@ void run_serial_simulation(std::vector<Particle>& particles, const SimConfig& co
         }
         auto t_force_end = wall_clock();
 
-        // Step 6: Final half-kick
         leapfrog_kick_half(particles, config.dt);
-
         auto t_step_end = wall_clock();
 
-        // Step 7: Record metrics
         TimestepMetrics m;
         m.timestep = step;
         m.rank = 0;
@@ -130,11 +108,9 @@ void run_serial_simulation(std::vector<Particle>& particles, const SimConfig& co
         }
 
         logger.log_timestep(m);
-
         if (config.verbose) {
             MetricsLogger::print_timestep_summary(m, config.timesteps, N);
         }
-
         if (config.dump_particles && (step % config.dump_interval == 0)) {
             dump_particle_state(config.output_dir, step, particles);
         }
@@ -145,15 +121,11 @@ void run_serial_simulation(std::vector<Particle>& particles, const SimConfig& co
 }
 
 // ============================================================================
-// Parallel Simulation Driver (Milestones 3, 5, 6)
-//
-// Supports:
-//   - mpi_static: Static geometric slab partitioning, no dynamic rebalancing.
-//                 Shows performance degradation on clustered galaxy distributions.
-//   - mpi_morton: Morton SFC domain decomposition with adaptive load rebalancing.
-//   - full:       Complete AL-BH pipeline with OpenMP + Morton SFC + dynamic rebalancing.
+// True Distributed Parallel Simulation Driver (MPI + OpenMP Hybrid)
 // ============================================================================
-void run_parallel_simulation(std::vector<Particle>& particles, const SimConfig& config) {
+void run_parallel_simulation(std::vector<Particle>& initial_particles,
+                            const SimConfig& config,
+                            const MPIContext& ctx) {
     auto wall_clock = []() {
         return std::chrono::high_resolution_clock::now();
     };
@@ -162,161 +134,210 @@ void run_parallel_simulation(std::vector<Particle>& particles, const SimConfig& 
     };
 
     MetricsLogger logger;
-    logger.init(config.output_dir, config);
-
-    int N = static_cast<int>(particles.size());
-    int P = (config.num_threads > 1) ? config.num_threads : 4;
-
-    std::cout << "\n[Parallel Simulation (" << config.mode << ")] Starting "
-              << config.timesteps << " timesteps with " << N << " particles across "
-              << P << " simulated ranks\n\n";
-
-    std::vector<PartitionInfo> partitions;
-    bool is_static = (config.mode == "mpi_static");
-
-    // Initial domain decomposition
-    if (is_static) {
-        partitions = partition_static_geometric(particles, P, config.box_size);
-        assign_ownership(particles, partitions);
-    } else {
-        compute_and_sort_by_morton(particles, config.box_size);
-        partitions = partition_equal_count(particles, P);
-        assign_ownership(particles, partitions);
+    if (ctx.is_root()) {
+        logger.init(config.output_dir, config);
+        std::cout << "\n[Parallel Simulation (" << config.mode << ")] Starting "
+                  << config.timesteps << " timesteps across " << ctx.size
+                  << " real MPI processes (threads/rank: " << config.num_threads << ")\n\n";
     }
 
-    LoadBalancer lb(P, config.rebalance_threshold);
+    int N_total = config.N;
+    bool is_static = (config.mode == "mpi_static");
+
+    // 1. Initial Domain Decomposition & Scattering
+    std::vector<Particle> local_particles;
+    std::vector<PartitionInfo> partitions;
+
+    if (ctx.size > 1) {
+        // Multi-process distributed MPI mode
+        if (ctx.is_root()) {
+            if (is_static) {
+                partitions = partition_static_geometric(initial_particles, ctx.size, config.box_size);
+                assign_ownership(initial_particles, partitions);
+            } else {
+                compute_and_sort_by_morton(initial_particles, config.box_size);
+                partitions = partition_equal_count(initial_particles, ctx.size);
+                assign_ownership(initial_particles, partitions);
+            }
+        }
+
+        // Broadcast initial partitions count
+        std::vector<int> counts(ctx.size);
+        if (ctx.is_root()) {
+            for (int r = 0; r < ctx.size; ++r) counts[r] = partitions[r].particle_count;
+        }
+        #ifdef ENABLE_MPI
+        MPI_Bcast(counts.data(), ctx.size, MPI_INT, 0, MPI_COMM_WORLD);
+        #endif
+
+        int my_count = counts[ctx.rank];
+        local_particles.resize(my_count);
+
+        #ifdef ENABLE_MPI
+        std::vector<int> byte_counts(ctx.size);
+        std::vector<int> displs(ctx.size);
+        int offset = 0;
+        for (int r = 0; r < ctx.size; ++r) {
+            byte_counts[r] = counts[r] * sizeof(Particle);
+            displs[r] = offset * sizeof(Particle);
+            offset += counts[r];
+        }
+
+        const void* sendbuf = ctx.is_root() ? initial_particles.data() : nullptr;
+        MPI_Scatterv(sendbuf, byte_counts.data(), displs.data(), MPI_BYTE,
+                     local_particles.data(), my_count * sizeof(Particle), MPI_BYTE,
+                     0, MPI_COMM_WORLD);
+        #endif
+    } else {
+        // Single process fallback with simulated ranks
+        local_particles = std::move(initial_particles);
+        partitions = is_static
+            ? partition_static_geometric(local_particles, config.num_threads > 1 ? config.num_threads : 4, config.box_size)
+            : partition_equal_count(local_particles, config.num_threads > 1 ? config.num_threads : 4);
+        assign_ownership(local_particles, partitions);
+    }
+
+    LoadBalancer lb(ctx.size > 1 ? ctx.size : 4, config.rebalance_threshold);
     Octree lin_tree;
     PointerOctree ptr_tree;
 
-    // Initial force computation
+    std::vector<Particle> global_particles;
+    exchange_all_particles(local_particles, global_particles, ctx, config.use_nonblocking);
+
     if (config.use_linearized_tree) {
-        lin_tree.build(particles, 0.0, 0.0, 0.0, config.box_size);
-        compute_forces_linearized(particles, lin_tree,
+        lin_tree.build(global_particles, 0.0, 0.0, 0.0, config.box_size);
+        compute_forces_linearized(local_particles, lin_tree,
                                    config.G, config.theta, config.softening,
                                    config.num_threads);
     } else {
-        ptr_tree.build(particles, 0.0, 0.0, 0.0, config.box_size);
-        compute_forces_pointer(particles, ptr_tree,
+        ptr_tree.build(global_particles, 0.0, 0.0, 0.0, config.box_size);
+        compute_forces_pointer(local_particles, ptr_tree,
                                 config.G, config.theta, config.softening,
                                 config.num_threads);
     }
 
-    if (config.dump_particles) {
-        dump_particle_state(config.output_dir, 0, particles);
+    if (ctx.is_root() && config.dump_particles) {
+        dump_particle_state(config.output_dir, 0, global_particles);
     }
 
-    // --- Main Loop ---
+    // --- Main Simulation Loop ---
     for (int step = 1; step <= config.timesteps; ++step) {
         auto t_step_start = wall_clock();
 
-        // 1. Half-kick
-        leapfrog_kick_half(particles, config.dt);
+        // 1. Half-kick local particles
+        leapfrog_kick_half(local_particles, config.dt);
 
-        // 2. Drift
-        leapfrog_drift(particles, config.dt);
+        // 2. Drift local particles
+        leapfrog_drift(local_particles, config.dt);
 
-        // 3. Morton sort
+        // 3. Morton sort local particles
         auto t_sort_start = wall_clock();
-        compute_and_sort_by_morton(particles, config.box_size);
+        compute_and_sort_by_morton(local_particles, config.box_size);
         auto t_sort_end = wall_clock();
 
-        // 4. Domain tracking & Load balancing
-        double rebalance_time = 0.0;
-        int migrated = 0;
-        double current_imbalance = 1.0;
+        // 4. Real MPI Global/Ghost Exchange
+        auto t_comm_start = wall_clock();
+        double real_comm_time = exchange_all_particles(local_particles, global_particles, ctx, config.use_nonblocking);
+        auto t_comm_end = wall_clock();
+        double comm_time_total = real_comm_time > 0.0 ? real_comm_time : elapsed(t_comm_start, t_comm_end);
 
-        if (is_static) {
-            // Static geometric: re-evaluate which slab each particle is in
-            double slab_width = config.box_size / static_cast<double>(P);
-            std::vector<double> rank_counts(P, 0.0);
-            for (auto& p : particles) {
-                int r = static_cast<int>(p.x / slab_width);
-                r = std::max(0, std::min(P - 1, r));
-                p.owner_rank = r;
-                rank_counts[r] += 1.0;
-            }
-            current_imbalance = LoadBalancer::compute_imbalance(rank_counts);
-            // No rebalancing in static mode!
-        } else {
-            // Adaptive Morton: check workloads and rebalance if imbalance > threshold
-            std::vector<double> rank_counts(P, 0.0);
-            for (const auto& p : particles) {
-                int r = std::max(0, std::min(P - 1, p.owner_rank));
-                rank_counts[r] += 1.0;
-            }
-
-            auto rebal_res = lb.check_and_rebalance(particles, partitions, rank_counts, config.box_size);
-            if (rebal_res.triggered) {
-                rebalance_time = rebal_res.rebalance_time;
-                migrated = rebal_res.particles_migrated;
-                current_imbalance = rebal_res.imbalance_after;
-            } else {
-                current_imbalance = rebal_res.imbalance_before;
-            }
-        }
-
-        // 5. Build Octree
+        // 5. Build Octree from global particles
         auto t_tree_start = wall_clock();
         if (config.use_linearized_tree) {
-            lin_tree.build(particles, 0.0, 0.0, 0.0, config.box_size);
+            lin_tree.build(global_particles, 0.0, 0.0, 0.0, config.box_size);
         } else {
-            ptr_tree.build(particles, 0.0, 0.0, 0.0, config.box_size);
+            ptr_tree.build(global_particles, 0.0, 0.0, 0.0, config.box_size);
         }
         auto t_tree_end = wall_clock();
 
-        // 6. Compute forces
+        // 6. Compute forces for local particles
         auto t_force_start = wall_clock();
         if (config.use_linearized_tree) {
-            compute_forces_linearized(particles, lin_tree,
+            compute_forces_linearized(local_particles, lin_tree,
                                        config.G, config.theta, config.softening,
                                        config.num_threads);
         } else {
-            compute_forces_pointer(particles, ptr_tree,
+            compute_forces_pointer(local_particles, ptr_tree,
                                     config.G, config.theta, config.softening,
                                     config.num_threads);
         }
         auto t_force_end = wall_clock();
 
         // 7. Final half-kick
-        leapfrog_kick_half(particles, config.dt);
+        leapfrog_kick_half(local_particles, config.dt);
+
+        // 8. Dynamic Load Balancing Evaluation
+        double rebalance_time = 0.0;
+        int migrated = 0;
+        double current_imbalance = 1.0;
+        double local_time = elapsed(t_force_start, t_force_end);
+
+        std::vector<double> all_workloads;
+        comm_time_total += gather_workloads(local_time, all_workloads, ctx);
+        current_imbalance = LoadBalancer::compute_imbalance(all_workloads);
+
+        if (!is_static && (config.mode == "mpi_morton" || config.mode == "full")) {
+            if (current_imbalance > config.rebalance_threshold && ctx.size > 1) {
+                // Determine migration target ranks
+                std::vector<int> target_ranks(local_particles.size(), ctx.rank);
+                // Compute new partition splitters
+                int total_n = static_cast<int>(global_particles.size());
+                int base = total_n / ctx.size;
+                int rem = total_n % ctx.size;
+
+                // Sort global to get accurate Morton splitters
+                compute_and_sort_by_morton(global_particles, config.box_size);
+                std::vector<PartitionInfo> new_parts = partition_equal_count(global_particles, ctx.size);
+
+                for (size_t i = 0; i < local_particles.size(); ++i) {
+                    target_ranks[i] = find_owner_rank(local_particles[i].morton_key, new_parts);
+                    if (target_ranks[i] != ctx.rank) migrated++;
+                }
+
+                rebalance_time = migrate_particles_mpi(local_particles, target_ranks, ctx);
+            }
+        }
 
         auto t_step_end = wall_clock();
 
-        // 8. Record Metrics
-        TimestepMetrics m;
-        m.timestep = step;
-        m.rank = 0;
-        m.local_particle_count = N / P;
-        m.tree_build_time = elapsed(t_tree_start, t_tree_end) + elapsed(t_sort_start, t_sort_end);
-        m.force_compute_time = elapsed(t_force_start, t_force_end);
-        m.comm_time = 0.0001; // simulated non-blocking boundary exchange latency
-        m.rebalance_time = rebalance_time;
-        m.total_step_time = elapsed(t_step_start, t_step_end);
-        m.imbalance_ratio = current_imbalance;
-        m.particles_migrated = migrated;
+        // 9. Energy Computation & Reduction
+        double local_ke = compute_kinetic_energy(local_particles);
+        double local_pe = (N_total <= 5000)
+            ? compute_potential_energy(local_particles, config.G, config.softening)
+            : 0.0;
+        double global_ke = 0.0, global_pe = 0.0;
+        reduce_energy(local_ke, local_pe, global_ke, global_pe, ctx);
 
-        m.kinetic_energy = compute_kinetic_energy(particles);
-        if (N <= 5000) {
-            m.potential_energy = compute_potential_energy(particles, config.G, config.softening);
-        } else {
-            m.potential_energy = 0.0;
-        }
+        // 10. Logging on Rank 0
+        if (ctx.is_root()) {
+            TimestepMetrics m;
+            m.timestep = step;
+            m.rank = 0;
+            m.local_particle_count = static_cast<int>(local_particles.size());
+            m.tree_build_time = elapsed(t_tree_start, t_tree_end) + elapsed(t_sort_start, t_sort_end);
+            m.force_compute_time = elapsed(t_force_start, t_force_end);
+            m.comm_time = comm_time_total;
+            m.rebalance_time = rebalance_time;
+            m.total_step_time = elapsed(t_step_start, t_step_end);
+            m.imbalance_ratio = current_imbalance;
+            m.particles_migrated = migrated;
+            m.kinetic_energy = global_ke;
+            m.potential_energy = global_pe;
 
-        logger.log_timestep(m);
-
-        if (config.verbose) {
-            MetricsLogger::print_timestep_summary(m, config.timesteps, N);
-        }
-
-        if (config.dump_particles && (step % config.dump_interval == 0)) {
-            dump_particle_state(config.output_dir, step, particles);
+            logger.log_timestep(m);
+            if (config.verbose) {
+                MetricsLogger::print_timestep_summary(m, config.timesteps, N_total);
+            }
+            if (config.dump_particles && (step % config.dump_interval == 0)) {
+                dump_particle_state(config.output_dir, step, global_particles);
+            }
         }
     }
 
-    logger.finalize();
-    std::cout << "\n[" << config.mode << " Simulation] Complete. Total dynamic rebalances: "
-              << lb.get_total_rebalances() << ", Migrated particles: "
-              << lb.get_total_particles_migrated() << "\n";
+    if (ctx.is_root()) {
+        logger.finalize();
+        std::cout << "\n[" << config.mode << " MPI Simulation] Complete.\n";
+    }
 }
 
 } // namespace albh

@@ -33,7 +33,9 @@ BIN_PATH = os.path.join(PROJECT_ROOT, "build", "al_bh")
 OUT_DIR = os.path.join(PROJECT_ROOT, "results", "evaluation")
 
 def run_cmd(cmd):
-    res = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    env = os.environ.copy()
+    env["PATH"] = "/home/res/miniconda3/bin:" + env.get("PATH", "")
+    res = subprocess.run(cmd, shell=True, capture_output=True, text=True, env=env)
     if res.returncode != 0:
         print(f"Error running cmd: {cmd}\n{res.stderr}")
     return res.stdout
@@ -50,6 +52,7 @@ def main():
     parser.add_argument("--scale", type=str, choices=["quick", "medium", "large", "extreme"],
                         default="medium", help="Benchmark scale preset: quick, medium, large, extreme")
     parser.add_argument("--quick", action="store_true", help="Alias for --scale quick")
+    parser.add_argument("--mpi", action="store_true", help="Run benchmarks using real distributed MPI processes via mpirun")
     args = parser.parse_args()
 
     scale = "quick" if args.quick else args.scale
@@ -94,7 +97,11 @@ def main():
     for t in threads_list:
         sub = os.path.join(strong_dir, f"t{t}")
         os.makedirs(sub, exist_ok=True)
-        run_cmd(f"{BIN_PATH} --N {n_strong} --steps {steps_strong} --dist 1 --threads {t} --mode full --output {sub} --verbose 0")
+        if args.mpi:
+            cmd = f"mpirun --oversubscribe -np {t} {BIN_PATH} --N {n_strong} --steps {steps_strong} --dist 1 --threads 1 --mode full --output {sub} --verbose 0"
+        else:
+            cmd = f"{BIN_PATH} --N {n_strong} --steps {steps_strong} --dist 1 --threads {t} --mode full --output {sub} --verbose 0"
+        run_cmd(cmd)
         data = read_metrics_csv(sub)
         force_t = float(np.sum(data['force_compute_time']))
         total_t = float(np.sum(data['total_step_time']))
@@ -105,7 +112,7 @@ def main():
             'tree_time': tree_t,
             'total_time': total_t
         })
-        print(f"  Threads: {t:2d} | Total Time: {total_t:.4f}s | Force Time: {force_t:.4f}s")
+        print(f"  Ranks/Threads: {t:2d} | Total Time: {total_t:.4f}s | Force Time: {force_t:.4f}s")
 
     t1_force = strong_results[0]['force_time']
     t1_total = strong_results[0]['total_time']
@@ -123,11 +130,15 @@ def main():
         n_curr = n_per_thread * t
         sub = os.path.join(weak_dir, f"t{t}")
         os.makedirs(sub, exist_ok=True)
-        run_cmd(f"{BIN_PATH} --N {n_curr} --steps {steps_strong} --dist 1 --threads {t} --mode full --output {sub} --verbose 0")
+        if args.mpi:
+            cmd = f"mpirun --oversubscribe -np {t} {BIN_PATH} --N {n_curr} --steps {steps_strong} --dist 1 --threads 1 --mode full --output {sub} --verbose 0"
+        else:
+            cmd = f"{BIN_PATH} --N {n_curr} --steps {steps_strong} --dist 1 --threads {t} --mode full --output {sub} --verbose 0"
+        run_cmd(cmd)
         data = read_metrics_csv(sub)
         total_t = float(np.sum(data['total_step_time']))
         weak_results.append({'threads': t, 'N': n_curr, 'total_time': total_t})
-        print(f"  Threads: {t:2d} | N: {n_curr:5d} | Total Time: {total_t:.4f}s")
+        print(f"  Ranks/Threads: {t:2d} | N: {n_curr:5d} | Total Time: {total_t:.4f}s")
 
     # -------------------------------------------------------------------------
     # 3. LOAD IMBALANCE & PERFORMANCE STABILITY (Metrics #2, #5, #8)
@@ -139,8 +150,15 @@ def main():
     os.makedirs(static_sub, exist_ok=True)
     os.makedirs(morton_sub, exist_ok=True)
 
-    run_cmd(f"{BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 4 --mode mpi_static --output {static_sub} --verbose 0")
-    run_cmd(f"{BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 4 --mode mpi_morton --output {morton_sub} --verbose 0")
+    if args.mpi:
+        cmd_static = f"mpirun --oversubscribe -np 4 {BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 1 --mode mpi_static --output {static_sub} --verbose 0"
+        cmd_morton = f"mpirun --oversubscribe -np 4 {BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 1 --mode mpi_morton --output {morton_sub} --verbose 0"
+    else:
+        cmd_static = f"{BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 4 --mode mpi_static --output {static_sub} --verbose 0"
+        cmd_morton = f"{BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 4 --mode mpi_morton --output {morton_sub} --verbose 0"
+
+    run_cmd(cmd_static)
+    run_cmd(cmd_morton)
 
     d_static = read_metrics_csv(static_sub)
     d_morton = read_metrics_csv(morton_sub)

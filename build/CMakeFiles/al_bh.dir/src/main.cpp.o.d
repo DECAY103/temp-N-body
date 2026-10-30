@@ -130,6 +130,10 @@ CMakeFiles/al_bh.dir/src/main.cpp.o: \
  /usr/include/c++/13/bits/charconv.h \
  /usr/include/c++/13/bits/basic_string.tcc \
  /home/res/Documents/PC/Project/include/config.hpp \
+ /home/res/Documents/PC/Project/include/communication.hpp \
+ /home/res/Documents/PC/Project/include/particle.hpp \
+ /home/res/miniconda3/include/mpi.h \
+ /home/res/miniconda3/include/mpi_portable_platform.h \
  /usr/include/c++/13/iostream /usr/include/c++/13/ostream \
  /usr/include/c++/13/ios /usr/include/c++/13/exception \
  /usr/include/c++/13/bits/exception_ptr.h \

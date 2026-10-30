@@ -194,6 +194,10 @@ CMakeFiles/al_bh.dir/src/simulation.cpp.o: \
  /home/res/Documents/PC/Project/include/partition.hpp \
  /home/res/Documents/PC/Project/include/load_balancer.hpp \
  /home/res/Documents/PC/Project/include/partition.hpp \
+ /home/res/Documents/PC/Project/include/communication.hpp \
+ /home/res/Documents/PC/Project/include/particle.hpp \
+ /home/res/miniconda3/include/mpi.h \
+ /home/res/miniconda3/include/mpi_portable_platform.h \
  /usr/include/c++/13/chrono /usr/include/c++/13/bits/chrono.h \
  /usr/include/c++/13/ratio /usr/include/c++/13/limits \
  /usr/include/c++/13/ctime /usr/include/c++/13/bits/parse_numbers.h \

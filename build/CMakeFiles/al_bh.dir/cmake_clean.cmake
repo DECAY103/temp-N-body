@@ -1,5 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/al_bh.dir/link.d"
+  "CMakeFiles/al_bh.dir/src/communication.cpp.o"
+  "CMakeFiles/al_bh.dir/src/communication.cpp.o.d"
   "CMakeFiles/al_bh.dir/src/config.cpp.o"
   "CMakeFiles/al_bh.dir/src/config.cpp.o.d"
   "CMakeFiles/al_bh.dir/src/force.cpp.o"

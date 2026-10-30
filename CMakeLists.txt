@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # -------------------------------------------------------------------
 # Build options
 # -------------------------------------------------------------------
-option(ENABLE_MPI    "Enable MPI support"    OFF)
+option(ENABLE_MPI    "Enable MPI support"    ON)
 option(ENABLE_OPENMP "Enable OpenMP support" ON)
 
 # -------------------------------------------------------------------
@@ -16,7 +16,7 @@ option(ENABLE_OPENMP "Enable OpenMP support" ON)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 # -------------------------------------------------------------------
-# Source files — Milestone 1+2 core (serial + Morton + Octree)
+# Source files — Core (serial + Morton + Octree + Partition + Load Balancer + Comm)
 # -------------------------------------------------------------------
 set(CORE_SOURCES
     src/particle_generator.cpp
@@ -29,21 +29,15 @@ set(CORE_SOURCES
     src/metrics.cpp
     src/partition.cpp
     src/load_balancer.cpp
+    src/communication.cpp
     src/simulation.cpp
 )
 
 # -------------------------------------------------------------------
-# MPI sources (Milestones 3, 5, 6) — added when ENABLE_MPI is ON
+# MPI configuration
 # -------------------------------------------------------------------
 if(ENABLE_MPI)
     find_package(MPI REQUIRED)
-    # Future: add partition.cpp, communication.cpp, load_balancer.cpp
-    set(MPI_SOURCES
-        # src/partition.cpp
-        # src/communication.cpp
-        # src/load_balancer.cpp
-    )
-    list(APPEND CORE_SOURCES ${MPI_SOURCES})
 endif()
 
 # -------------------------------------------------------------------
@@ -66,7 +60,7 @@ endif()
 if(ENABLE_MPI)
     target_include_directories(al_bh PRIVATE ${MPI_CXX_INCLUDE_DIRS})
     target_link_libraries(al_bh PUBLIC MPI::MPI_CXX)
-    target_compile_definitions(al_bh PRIVATE USE_MPI)
+    target_compile_definitions(al_bh PRIVATE ENABLE_MPI USE_MPI)
     message(STATUS "MPI enabled")
 endif()
 
@@ -101,6 +95,16 @@ target_include_directories(test_partition PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_executable(test_load_balancer tests/test_load_balancer.cpp
     src/load_balancer.cpp src/partition.cpp src/morton.cpp src/particle_generator.cpp)
 target_include_directories(test_load_balancer PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+# Test MPI Communication (Milestone 5)
+if(ENABLE_MPI)
+    add_executable(test_mpi_comm tests/test_mpi_comm.cpp
+        src/communication.cpp src/particle_generator.cpp)
+    target_include_directories(test_mpi_comm PRIVATE ${CMAKE_SOURCE_DIR}/include ${MPI_CXX_INCLUDE_DIRS})
+    target_link_libraries(test_mpi_comm PUBLIC MPI::MPI_CXX)
+    target_compile_definitions(test_mpi_comm PRIVATE ENABLE_MPI USE_MPI)
+    target_compile_options(test_mpi_comm PRIVATE -O2 -Wall)
+endif()
 
 # -------------------------------------------------------------------
 # Compiler flags

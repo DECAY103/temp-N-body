@@ -194,6 +194,46 @@ test_load_balancer/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_load_balancer.dir/build.make CMakeFiles/test_load_balancer.dir/build
 .PHONY : test_load_balancer/fast
 
+#=============================================================================
+# Target rules for targets named test_mpi_comm
+
+# Build rule for target.
+test_mpi_comm: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test_mpi_comm
+.PHONY : test_mpi_comm
+
+# fast build rule for target.
+test_mpi_comm/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_mpi_comm.dir/build.make CMakeFiles/test_mpi_comm.dir/build
+.PHONY : test_mpi_comm/fast
+
+src/communication.o: src/communication.cpp.o
+.PHONY : src/communication.o
+
+# target to build an object file
+src/communication.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/al_bh.dir/build.make CMakeFiles/al_bh.dir/src/communication.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_mpi_comm.dir/build.make CMakeFiles/test_mpi_comm.dir/src/communication.cpp.o
+.PHONY : src/communication.cpp.o
+
+src/communication.i: src/communication.cpp.i
+.PHONY : src/communication.i
+
+# target to preprocess a source file
+src/communication.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/al_bh.dir/build.make CMakeFiles/al_bh.dir/src/communication.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_mpi_comm.dir/build.make CMakeFiles/test_mpi_comm.dir/src/communication.cpp.i
+.PHONY : src/communication.cpp.i
+
+src/communication.s: src/communication.cpp.s
+.PHONY : src/communication.s
+
+# target to generate assembly for a file
+src/communication.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/al_bh.dir/build.make CMakeFiles/al_bh.dir/src/communication.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_mpi_comm.dir/build.make CMakeFiles/test_mpi_comm.dir/src/communication.cpp.s
+.PHONY : src/communication.cpp.s
+
 src/config.o: src/config.cpp.o
 .PHONY : src/config.o
 
@@ -454,6 +494,7 @@ src/particle_generator.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_force.dir/build.make CMakeFiles/test_force.dir/src/particle_generator.cpp.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_partition.dir/build.make CMakeFiles/test_partition.dir/src/particle_generator.cpp.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_load_balancer.dir/build.make CMakeFiles/test_load_balancer.dir/src/particle_generator.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_mpi_comm.dir/build.make CMakeFiles/test_mpi_comm.dir/src/particle_generator.cpp.o
 .PHONY : src/particle_generator.cpp.o
 
 src/particle_generator.i: src/particle_generator.cpp.i
@@ -467,6 +508,7 @@ src/particle_generator.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_force.dir/build.make CMakeFiles/test_force.dir/src/particle_generator.cpp.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_partition.dir/build.make CMakeFiles/test_partition.dir/src/particle_generator.cpp.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_load_balancer.dir/build.make CMakeFiles/test_load_balancer.dir/src/particle_generator.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_mpi_comm.dir/build.make CMakeFiles/test_mpi_comm.dir/src/particle_generator.cpp.i
 .PHONY : src/particle_generator.cpp.i
 
 src/particle_generator.s: src/particle_generator.cpp.s
@@ -480,6 +522,7 @@ src/particle_generator.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_force.dir/build.make CMakeFiles/test_force.dir/src/particle_generator.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_partition.dir/build.make CMakeFiles/test_partition.dir/src/particle_generator.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_load_balancer.dir/build.make CMakeFiles/test_load_balancer.dir/src/particle_generator.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_mpi_comm.dir/build.make CMakeFiles/test_mpi_comm.dir/src/particle_generator.cpp.s
 .PHONY : src/particle_generator.cpp.s
 
 src/partition.o: src/partition.cpp.o
@@ -608,6 +651,30 @@ tests/test_morton.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_morton.dir/build.make CMakeFiles/test_morton.dir/tests/test_morton.cpp.s
 .PHONY : tests/test_morton.cpp.s
 
+tests/test_mpi_comm.o: tests/test_mpi_comm.cpp.o
+.PHONY : tests/test_mpi_comm.o
+
+# target to build an object file
+tests/test_mpi_comm.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_mpi_comm.dir/build.make CMakeFiles/test_mpi_comm.dir/tests/test_mpi_comm.cpp.o
+.PHONY : tests/test_mpi_comm.cpp.o
+
+tests/test_mpi_comm.i: tests/test_mpi_comm.cpp.i
+.PHONY : tests/test_mpi_comm.i
+
+# target to preprocess a source file
+tests/test_mpi_comm.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_mpi_comm.dir/build.make CMakeFiles/test_mpi_comm.dir/tests/test_mpi_comm.cpp.i
+.PHONY : tests/test_mpi_comm.cpp.i
+
+tests/test_mpi_comm.s: tests/test_mpi_comm.cpp.s
+.PHONY : tests/test_mpi_comm.s
+
+# target to generate assembly for a file
+tests/test_mpi_comm.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_mpi_comm.dir/build.make CMakeFiles/test_mpi_comm.dir/tests/test_mpi_comm.cpp.s
+.PHONY : tests/test_mpi_comm.cpp.s
+
 tests/test_octree.o: tests/test_octree.cpp.o
 .PHONY : tests/test_octree.o
 
@@ -668,8 +735,12 @@ help:
 	@echo "... test_force"
 	@echo "... test_load_balancer"
 	@echo "... test_morton"
+	@echo "... test_mpi_comm"
 	@echo "... test_octree"
 	@echo "... test_partition"
+	@echo "... src/communication.o"
+	@echo "... src/communication.i"
+	@echo "... src/communication.s"
 	@echo "... src/config.o"
 	@echo "... src/config.i"
 	@echo "... src/config.s"
@@ -715,6 +786,9 @@ help:
 	@echo "... tests/test_morton.o"
 	@echo "... tests/test_morton.i"
 	@echo "... tests/test_morton.s"
+	@echo "... tests/test_mpi_comm.o"
+	@echo "... tests/test_mpi_comm.i"
+	@echo "... tests/test_mpi_comm.s"
 	@echo "... tests/test_octree.o"
 	@echo "... tests/test_octree.i"
 	@echo "... tests/test_octree.s"
