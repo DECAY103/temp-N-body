@@ -75,11 +75,12 @@ void MetricsLogger::flush() {
 
 // Print a console summary for one timestep
 void MetricsLogger::print_timestep_summary(const TimestepMetrics& m,
-                                            int total_steps, int total_N) {
+                                            int total_steps, int total_N,
+                                            double theta) {
     std::cout << "[Timestep " << std::setw(4) << std::setfill('0') << m.timestep
               << "/" << total_steps << "]"
               << " N=" << total_N
-              << " | θ=" << std::fixed << std::setprecision(1)
+              << " | θ=" << std::fixed << std::setprecision(2) << theta
               << "\n  Force: " << std::setprecision(4) << m.force_compute_time << "s"
               << "  Tree: " << m.tree_build_time << "s"
               << "  Comm: " << m.comm_time << "s"

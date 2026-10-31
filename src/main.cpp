@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
             : albh::Distribution::UNIFORM;
 
         particles = albh::generate_particles(
-            dist, config.N, config.box_size, config.total_mass, config.seed);
+            dist, config.N, config.box_size, config.total_mass, config.plummer_a, config.seed);
 
         std::cout << "Generated " << particles.size() << " particles ("
                   << (config.distribution == 0 ? "uniform" : "plummer") << ") on Root Process\n";

@@ -24,12 +24,28 @@ struct MPIContext {
 void init_mpi(int* argc, char*** argv, MPIContext& ctx);
 void finalize_mpi();
 
-// Exchange particles across all ranks using real MPI_Allgatherv (or nonblocking MPI_Iallgatherv).
+// Exchange particles across all ranks using real MPI_Allgatherv.
 // Returns the real communication time measured via MPI_Wtime().
 double exchange_all_particles(const std::vector<Particle>& local_particles,
                               std::vector<Particle>& global_particles,
                               const MPIContext& ctx,
-                              bool use_nonblocking = true);
+                              bool use_nonblocking = false);
+
+#ifdef ENABLE_MPI
+struct NonblockingExchangeHandle {
+    MPI_Request request = MPI_REQUEST_NULL;
+    double t_start = 0.0;
+};
+
+// Start genuine non-blocking particle exchange (MPI_Iallgatherv) for overlapping computation
+NonblockingExchangeHandle start_exchange_all_particles(
+    const std::vector<Particle>& local_particles,
+    std::vector<Particle>& global_particles,
+    const MPIContext& ctx);
+
+// Complete non-blocking exchange and return elapsed communication time
+double wait_exchange_all_particles(NonblockingExchangeHandle& handle);
+#endif
 
 // Reduce local kinetic & potential energies to Rank 0 using MPI_Reduce
 void reduce_energy(double local_ke, double local_pe,

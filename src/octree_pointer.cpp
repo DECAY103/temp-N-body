@@ -51,12 +51,19 @@ void PointerOctree::insert(PointerOctreeNode* node, int particle_idx,
                              const std::vector<Particle>& particles, int depth) {
     if (depth >= MAX_DEPTH) {
         node->particle_count++;
+        if (node->particle_index == -1) {
+            node->particle_index = particle_idx;
+            node->particle_id = particles[particle_idx].id;
+        } else {
+            node->overflow_indices.push_back(particle_idx);
+        }
         return;
     }
 
     if (node->particle_count == 0) {
         // Empty node → place particle as leaf
         node->particle_index = particle_idx;
+        node->particle_id = particles[particle_idx].id;
         node->particle_count = 1;
         return;
     }
@@ -69,6 +76,7 @@ void PointerOctree::insert(PointerOctreeNode* node, int particle_idx,
         // Occupied leaf → subdivide
         int existing = node->particle_index;
         node->particle_index = -1;
+        node->particle_id = -1;
 
         double child_size = node->size / 2.0;
 
@@ -113,13 +121,32 @@ void PointerOctree::compute_aggregates(PointerOctreeNode* node,
         return;
     }
 
-    // Leaf with single particle
+    // Leaf node (with primary particle and optional overflow coincident particles)
     if (node->particle_index >= 0 && !node->children[0]) {
         const Particle& p = particles[node->particle_index];
-        node->com_x = p.x;
-        node->com_y = p.y;
-        node->com_z = p.z;
-        node->total_mass = p.mass;
+        double total_mass = p.mass;
+        double wx = p.x * p.mass;
+        double wy = p.y * p.mass;
+        double wz = p.z * p.mass;
+
+        for (int extra_idx : node->overflow_indices) {
+            const Particle& ep = particles[extra_idx];
+            total_mass += ep.mass;
+            wx += ep.x * ep.mass;
+            wy += ep.y * ep.mass;
+            wz += ep.z * ep.mass;
+        }
+
+        node->total_mass = total_mass;
+        if (total_mass > 0.0) {
+            node->com_x = wx / total_mass;
+            node->com_y = wy / total_mass;
+            node->com_z = wz / total_mass;
+        } else {
+            node->com_x = p.x;
+            node->com_y = p.y;
+            node->com_z = p.z;
+        }
         return;
     }
 
@@ -143,6 +170,10 @@ void PointerOctree::compute_aggregates(PointerOctreeNode* node,
         node->com_x = wx / total_mass;
         node->com_y = wy / total_mass;
         node->com_z = wz / total_mass;
+    } else {
+        node->com_x = node->origin_x + node->size / 2.0;
+        node->com_y = node->origin_y + node->size / 2.0;
+        node->com_z = node->origin_z + node->size / 2.0;
     }
 }
 

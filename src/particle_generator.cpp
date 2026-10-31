@@ -29,6 +29,7 @@ std::vector<Particle> generate_uniform(int N, double box_size, double total_mass
         particles[i].mass = mass_per_particle;
         particles[i].morton_key = 0;
         particles[i].owner_rank = 0;
+        particles[i].id = i;
     }
 
     return particles;
@@ -96,6 +97,7 @@ std::vector<Particle> generate_plummer(int N, double box_size, double total_mass
         particles[i].mass = mass_per_particle;
         particles[i].morton_key = 0;
         particles[i].owner_rank = 0;
+        particles[i].id = i;
     }
 
     return particles;
@@ -103,10 +105,10 @@ std::vector<Particle> generate_plummer(int N, double box_size, double total_mass
 
 // Dispatch to the right generator based on distribution type
 std::vector<Particle> generate_particles(Distribution dist, int N, double box_size,
-                                          double total_mass, int seed) {
+                                          double total_mass, double plummer_a, int seed) {
     switch (dist) {
         case Distribution::PLUMMER:
-            return generate_plummer(N, box_size, total_mass, 0.1, seed);
+            return generate_plummer(N, box_size, total_mass, plummer_a, seed);
         default:
             return generate_uniform(N, box_size, total_mass, seed);
     }

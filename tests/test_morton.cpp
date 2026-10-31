@@ -58,10 +58,12 @@ void test_quantization() {
     // Mid-point maps to ~half of max
     uint32_t mid = quantize_coord(0.5, box_size);
     assert(mid > MORTON_MAX_COORD / 2 - 100 && mid < MORTON_MAX_COORD / 2 + 100);
+    (void)mid;
 
     // Near-max maps close to MORTON_MAX_COORD
     uint32_t near_max = quantize_coord(0.999, box_size);
     assert(near_max > MORTON_MAX_COORD - 5000);
+    (void)near_max;
 
     // Negative clamps to 0
     assert(quantize_coord(-1.0, box_size) == 0);
@@ -69,12 +71,14 @@ void test_quantization() {
     // Over box_size clamps
     uint32_t over = quantize_coord(2.0, box_size);
     assert(over == MORTON_MAX_COORD);
+    (void)over;
 
     // De-quantize round-trip (approximate)
     for (double val : {0.0, 0.25, 0.5, 0.75, 0.999}) {
         uint32_t q = quantize_coord(val, box_size);
         double recovered = dequantize_coord(q, box_size);
         assert(std::abs(recovered - val) < 0.001);
+        (void)recovered;
     }
 
     std::cout << "PASSED\n";
@@ -97,6 +101,8 @@ void test_spatial_locality() {
     // This is a statistical property, not guaranteed for all points,
     // but for these specific points it should hold
     assert(diff_near < diff_far && "Nearby points should have closer Morton keys");
+    (void)diff_near;
+    (void)diff_far;
 
     std::cout << "PASSED\n";
 }

@@ -43,7 +43,7 @@ void pairwise_accel(double px, double py, double pz,
 // self_idx prevents a particle from computing force on itself
 // ============================================================================
 void tree_walk_linearized(int node_idx, const Octree& tree,
-                           double px, double py, double pz, int self_idx,
+                           double px, double py, double pz, int target_id,
                            double G, double theta, double softening,
                            double& ax, double& ay, double& az) {
     const OctreeNode& node = tree.nodes[node_idx];
@@ -51,10 +51,19 @@ void tree_walk_linearized(int node_idx, const Octree& tree,
     // Skip empty nodes
     if (node.particle_count == 0) return;
 
-    // Leaf node with single particle
+    // Leaf node
     if (node.first_child == -1 && node.particle_index >= 0) {
-        // Don't compute self-interaction
-        if (node.particle_index == self_idx) return;
+        if (node.particle_id == target_id) {
+            // Target particle is in this leaf. If there are coincident particles at MAX_DEPTH,
+            // compute force from the other particles in this leaf
+            if (node.particle_count > 1 && node.total_mass > 0.0) {
+                double other_mass = node.total_mass * (static_cast<double>(node.particle_count - 1) / node.particle_count);
+                pairwise_accel(px, py, pz,
+                               node.com_x, node.com_y, node.com_z, other_mass,
+                               G, softening, ax, ay, az);
+            }
+            return;
+        }
 
         pairwise_accel(px, py, pz,
                        node.com_x, node.com_y, node.com_z, node.total_mass,
@@ -69,8 +78,14 @@ void tree_walk_linearized(int node_idx, const Octree& tree,
     double d2 = dx * dx + dy * dy + dz * dz;
     double d = std::sqrt(d2);
 
-    // Opening criterion: s/d < theta → use approximation
-    if (d > 0.0 && (node.size / d) < theta) {
+    // FIX: Never approximate an internal node that spatially contains the target particle!
+    // Approximating a node containing the target would include the target in its own aggregate force.
+    bool contains_target = (px >= node.origin_x && px <= (node.origin_x + node.size) &&
+                            py >= node.origin_y && py <= (node.origin_y + node.size) &&
+                            pz >= node.origin_z && pz <= (node.origin_z + node.size));
+
+    // Opening criterion: s/d < theta AND node does not contain target particle
+    if (!contains_target && d > 0.0 && (node.size / d) < theta) {
         pairwise_accel(px, py, pz,
                        node.com_x, node.com_y, node.com_z, node.total_mass,
                        G, softening, ax, ay, az);
@@ -81,7 +96,7 @@ void tree_walk_linearized(int node_idx, const Octree& tree,
     if (node.first_child >= 0) {
         for (int c = 0; c < 8; ++c) {
             tree_walk_linearized(node.first_child + c, tree,
-                                  px, py, pz, self_idx,
+                                  px, py, pz, target_id,
                                   G, theta, softening, ax, ay, az);
         }
     }
@@ -91,14 +106,22 @@ void tree_walk_linearized(int node_idx, const Octree& tree,
 // Pointer-based tree walk (baseline — same logic, different data structure)
 // ============================================================================
 void tree_walk_pointer(const PointerOctreeNode* node,
-                        double px, double py, double pz, int self_idx,
+                        double px, double py, double pz, int target_id,
                         double G, double theta, double softening,
                         double& ax, double& ay, double& az) {
     if (!node || node->particle_count == 0) return;
 
     // Leaf
     if (node->particle_index >= 0 && !node->children[0]) {
-        if (node->particle_index == self_idx) return;
+        if (node->particle_id == target_id) {
+            if (node->particle_count > 1 && node->total_mass > 0.0) {
+                double other_mass = node->total_mass * (static_cast<double>(node->particle_count - 1) / node->particle_count);
+                pairwise_accel(px, py, pz,
+                               node->com_x, node->com_y, node->com_z, other_mass,
+                               G, softening, ax, ay, az);
+            }
+            return;
+        }
 
         pairwise_accel(px, py, pz,
                        node->com_x, node->com_y, node->com_z, node->total_mass,
@@ -106,13 +129,17 @@ void tree_walk_pointer(const PointerOctreeNode* node,
         return;
     }
 
-    // Opening criterion
+    // Internal node: check opening criterion
     double dx = px - node->com_x;
     double dy = py - node->com_y;
     double dz = pz - node->com_z;
     double d = std::sqrt(dx * dx + dy * dy + dz * dz);
 
-    if (d > 0.0 && (node->size / d) < theta) {
+    bool contains_target = (px >= node->origin_x && px <= (node->origin_x + node->size) &&
+                            py >= node->origin_y && py <= (node->origin_y + node->size) &&
+                            pz >= node->origin_z && pz <= (node->origin_z + node->size));
+
+    if (!contains_target && d > 0.0 && (node->size / d) < theta) {
         pairwise_accel(px, py, pz,
                        node->com_x, node->com_y, node->com_z, node->total_mass,
                        G, softening, ax, ay, az);
@@ -122,7 +149,7 @@ void tree_walk_pointer(const PointerOctreeNode* node,
     for (int c = 0; c < 8; ++c) {
         if (node->children[c]) {
             tree_walk_pointer(node->children[c].get(),
-                               px, py, pz, self_idx,
+                               px, py, pz, target_id,
                                G, theta, softening, ax, ay, az);
         }
     }
@@ -150,7 +177,7 @@ void compute_forces_linearized(std::vector<Particle>& particles,
         particles[i].az = 0.0;
 
         tree_walk_linearized(0, tree,
-                              particles[i].x, particles[i].y, particles[i].z, i,
+                              particles[i].x, particles[i].y, particles[i].z, particles[i].id,
                               G, theta, softening,
                               particles[i].ax, particles[i].ay, particles[i].az);
     }
@@ -174,7 +201,7 @@ void compute_forces_pointer(std::vector<Particle>& particles,
         particles[i].az = 0.0;
 
         tree_walk_pointer(tree.root_node.get(),
-                           particles[i].x, particles[i].y, particles[i].z, i,
+                           particles[i].x, particles[i].y, particles[i].z, particles[i].id,
                            G, theta, softening,
                            particles[i].ax, particles[i].ay, particles[i].az);
     }

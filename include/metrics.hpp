@@ -50,7 +50,8 @@ public:
 
     // Print console summary for a timestep (if verbose)
     static void print_timestep_summary(const TimestepMetrics& m,
-                                        int total_steps, int total_N);
+                                        int total_steps, int total_N,
+                                        double theta = 0.5);
 
     // Finalize: flush and close files
     void finalize();

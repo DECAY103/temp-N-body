@@ -49,6 +49,7 @@ void Octree::build(const std::vector<Particle>& particles,
 
 void Octree::clear() {
     nodes.clear();
+    overflow_particles.clear();
 }
 
 // ============================================================================
@@ -115,15 +116,22 @@ int Octree::allocate_children(int node_idx) {
 // ============================================================================
 void Octree::insert(int node_idx, int particle_idx,
                      const std::vector<Particle>& particles, int depth) {
-    // Safety: prevent infinite recursion from coincident particles
+    // Safety: handle coincident particles at MAX_DEPTH without losing mass/particles
     if (depth >= MAX_DEPTH) {
         nodes[node_idx].particle_count++;
+        if (nodes[node_idx].particle_index == -1) {
+            nodes[node_idx].particle_index = particle_idx;
+            nodes[node_idx].particle_id = particles[particle_idx].id;
+        } else {
+            overflow_particles[node_idx].push_back(particle_idx);
+        }
         return;
     }
 
     if (nodes[node_idx].particle_count == 0 && nodes[node_idx].first_child == -1) {
         // Case 1: Empty leaf — place particle here
         nodes[node_idx].particle_index = particle_idx;
+        nodes[node_idx].particle_id = particles[particle_idx].id;
         nodes[node_idx].particle_count = 1;
         return;
     }
@@ -132,6 +140,7 @@ void Octree::insert(int node_idx, int particle_idx,
         // Case 2: Occupied leaf — need to subdivide
         int existing_particle = nodes[node_idx].particle_index;
         nodes[node_idx].particle_index = -1;  // no longer a leaf
+        nodes[node_idx].particle_id = -1;
 
         // Save spatial info BEFORE allocate_children (which may realloc the vector)
         double origin_x = nodes[node_idx].origin_x;
@@ -202,13 +211,35 @@ void Octree::compute_aggregates(int node_idx, const std::vector<Particle>& parti
         return;
     }
 
-    // Leaf with single particle
+    // Leaf node (with primary particle and optional overflow coincident particles)
     if (node.first_child == -1 && node.particle_index >= 0) {
         const Particle& p = particles[node.particle_index];
-        node.com_x = p.x;
-        node.com_y = p.y;
-        node.com_z = p.z;
-        node.total_mass = p.mass;
+        double total_mass = p.mass;
+        double weighted_x = p.x * p.mass;
+        double weighted_y = p.y * p.mass;
+        double weighted_z = p.z * p.mass;
+
+        auto it = overflow_particles.find(node_idx);
+        if (it != overflow_particles.end()) {
+            for (int extra_idx : it->second) {
+                const Particle& ep = particles[extra_idx];
+                total_mass += ep.mass;
+                weighted_x += ep.x * ep.mass;
+                weighted_y += ep.y * ep.mass;
+                weighted_z += ep.z * ep.mass;
+            }
+        }
+
+        node.total_mass = total_mass;
+        if (total_mass > 0.0) {
+            node.com_x = weighted_x / total_mass;
+            node.com_y = weighted_y / total_mass;
+            node.com_z = weighted_z / total_mass;
+        } else {
+            node.com_x = p.x;
+            node.com_y = p.y;
+            node.com_z = p.z;
+        }
         return;
     }
 
@@ -233,6 +264,10 @@ void Octree::compute_aggregates(int node_idx, const std::vector<Particle>& parti
             node.com_x = weighted_x / total_mass;
             node.com_y = weighted_y / total_mass;
             node.com_z = weighted_z / total_mass;
+        } else {
+            node.com_x = nodes[node_idx].origin_x + nodes[node_idx].size / 2.0;
+            node.com_y = nodes[node_idx].origin_y + nodes[node_idx].size / 2.0;
+            node.com_z = nodes[node_idx].origin_z + nodes[node_idx].size / 2.0;
         }
     }
 }

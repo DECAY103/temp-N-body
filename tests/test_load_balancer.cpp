@@ -44,6 +44,7 @@ void test_rebalance_trigger_and_migration() {
     std::vector<double> balanced_workloads = {250.0, 250.0, 250.0, 250.0};
     auto res1 = lb.check_and_rebalance(particles, partitions, balanced_workloads, box_size);
     assert(!res1.triggered);
+    (void)res1;
     assert(lb.get_total_rebalances() == 0);
 
     // Case 2: Imbalanced workload (ratio = 400/100 = 4.0 > 1.2) -> SHOULD trigger

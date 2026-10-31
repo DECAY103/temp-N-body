@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <unordered_map>
 
 namespace albh {
 
@@ -34,18 +35,22 @@ struct OctreeNode {
     // --- Tree structure ---
     int first_child;      // index into nodes[] of first child (-1 if leaf/empty)
     int particle_index;   // index into particles[] if leaf (-1 if internal/empty)
+    int particle_id;      // unique global ID of particle if leaf (-1 if internal/empty)
     int particle_count;   // total particles in this subtree
 
     OctreeNode()
         : com_x(0), com_y(0), com_z(0), total_mass(0),
           origin_x(0), origin_y(0), origin_z(0), size(0),
-          first_child(-1), particle_index(-1), particle_count(0) {}
+          first_child(-1), particle_index(-1), particle_id(-1), particle_count(0) {}
 };
 
 class Octree {
 public:
     // All nodes in contiguous storage
     std::vector<OctreeNode> nodes;
+
+    // Extra particles when MAX_DEPTH is reached for coincident/near-coincident particles
+    std::unordered_map<int, std::vector<int>> overflow_particles;
 
     // Maximum depth to prevent infinite recursion (particles at same position)
     static constexpr int MAX_DEPTH = 21;

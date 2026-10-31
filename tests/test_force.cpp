@@ -42,12 +42,13 @@ void test_two_body() {
     // Magnitude: a = G*M / (r^2 + eps^2)^(3/2) * r ≈ G*M/r^2 for r >> eps
     double expected_a = -G * 1.0 / std::pow(1.0 + softening * softening, 1.5);
     assert(std::abs(ax - expected_a) < 1e-6);
+    (void)expected_a;
 
     std::cout << "PASSED\n";
 }
 
 void test_bh_vs_direct() {
-    std::cout << "[TEST] Barnes-Hut vs Direct (N=100, theta=0.3)... ";
+    std::cout << "[TEST] Barnes-Hut vs Direct vector error (N=100, theta=0.3)... ";
 
     double G = 1.0, theta = 0.3, softening = 0.01;
     int N = 100;
@@ -63,25 +64,26 @@ void test_bh_vs_direct() {
     tree.build(particles_bh, 0.0, 0.0, 0.0, 1.0);
     compute_forces_linearized(particles_bh, tree, G, theta, softening, 1);
 
-    // Compare accelerations — should be close for small theta
+    // FIX: Compare actual acceleration 3D vectors: |a_bh - a_direct| / |a_direct|
+    // This catches wrong-direction errors that scalar magnitude comparison would miss.
     double max_rel_error = 0.0;
     for (int i = 0; i < N; ++i) {
+        double dax = particles_bh[i].ax - particles_direct[i].ax;
+        double day = particles_bh[i].ay - particles_direct[i].ay;
+        double daz = particles_bh[i].az - particles_direct[i].az;
+        double vec_diff = std::sqrt(dax * dax + day * day + daz * daz);
         double a_direct = std::sqrt(particles_direct[i].ax * particles_direct[i].ax +
                                      particles_direct[i].ay * particles_direct[i].ay +
                                      particles_direct[i].az * particles_direct[i].az);
-        double a_bh = std::sqrt(particles_bh[i].ax * particles_bh[i].ax +
-                                 particles_bh[i].ay * particles_bh[i].ay +
-                                 particles_bh[i].az * particles_bh[i].az);
 
         if (a_direct > 1e-12) {
-            double rel_error = std::abs(a_bh - a_direct) / a_direct;
+            double rel_error = vec_diff / a_direct;
             max_rel_error = std::max(max_rel_error, rel_error);
         }
     }
 
-    std::cout << "max_rel_error=" << max_rel_error << " ";
-    // With theta=0.3, expect < 5% relative error typically
-    assert(max_rel_error < 0.15 && "BH force should be close to direct for small theta");
+    std::cout << "max_rel_vec_error=" << max_rel_error << " ";
+    assert(max_rel_error < 0.15 && "BH force vector error should be small for theta=0.3");
 
     std::cout << "PASSED\n";
 }
@@ -121,14 +123,15 @@ void test_linearized_vs_pointer_forces() {
 }
 
 void test_no_self_interaction() {
-    std::cout << "[TEST] No self-interaction... ";
+    std::cout << "[TEST] No self-interaction (single & multi-particle)... ";
 
-    // Single particle should have zero acceleration
+    // 1. Single particle should have zero acceleration
     std::vector<Particle> particles(1);
     particles[0].x = 0.5;
     particles[0].y = 0.5;
     particles[0].z = 0.5;
     particles[0].mass = 1.0;
+    particles[0].id = 0;
 
     Octree tree;
     tree.build(particles, 0.0, 0.0, 0.0, 1.0);
@@ -137,6 +140,65 @@ void test_no_self_interaction() {
     assert(std::abs(particles[0].ax) < 1e-15 && "Single particle should have zero ax");
     assert(std::abs(particles[0].ay) < 1e-15 && "Single particle should have zero ay");
     assert(std::abs(particles[0].az) < 1e-15 && "Single particle should have zero az");
+
+    // 2. Multi-particle self-exclusion check:
+    // A symmetrical configuration: 2 identical particles along x-axis symmetric about center
+    std::vector<Particle> two_particles(2);
+    two_particles[0].x = 0.4; two_particles[0].y = 0.5; two_particles[0].z = 0.5;
+    two_particles[0].mass = 1.0; two_particles[0].id = 0;
+
+    two_particles[1].x = 0.6; two_particles[1].y = 0.5; two_particles[1].z = 0.5;
+    two_particles[1].mass = 1.0; two_particles[1].id = 1;
+
+    Octree tree2;
+    tree2.build(two_particles, 0.0, 0.0, 0.0, 1.0);
+    compute_forces_linearized(two_particles, tree2, 1.0, 0.3, 0.01, 1);
+
+    // By symmetry: particle 0 should feel +x force, particle 1 should feel equal -x force
+    assert(two_particles[0].ax > 0 && "Particle 0 must be attracted towards particle 1 (+x)");
+    assert(two_particles[1].ax < 0 && "Particle 1 must be attracted towards particle 0 (-x)");
+    assert(std::abs(two_particles[0].ax + two_particles[1].ax) < 1e-10 && "Net internal force must sum to 0 (Newton III)");
+
+    std::cout << "PASSED\n";
+}
+
+void test_coincident_particles_max_depth() {
+    std::cout << "[TEST] Coincident particles at MAX_DEPTH... ";
+
+    // Three particles at exactly the same coordinates (0.5, 0.5, 0.5)
+    // plus one observer particle at (0.8, 0.5, 0.5)
+    std::vector<Particle> particles(4);
+    for (int i = 0; i < 3; ++i) {
+        particles[i].x = 0.5;
+        particles[i].y = 0.5;
+        particles[i].z = 0.5;
+        particles[i].mass = 1.0;
+        particles[i].id = i;
+    }
+    particles[3].x = 0.8;
+    particles[3].y = 0.5;
+    particles[3].z = 0.5;
+    particles[3].mass = 1.0;
+    particles[3].id = 3;
+
+    // Check Linearized Octree
+    Octree lin_tree;
+    lin_tree.build(particles, 0.0, 0.0, 0.0, 1.0);
+
+    // Total mass in root node must equal 4.0 (no coincident mass lost!)
+    assert(std::abs(lin_tree.root().total_mass - 4.0) < 1e-10 && "Octree must aggregate all coincident particles' masses");
+
+    // Check Pointer Octree
+    PointerOctree ptr_tree;
+    ptr_tree.build(particles, 0.0, 0.0, 0.0, 1.0);
+    assert(std::abs(ptr_tree.root_node->total_mass - 4.0) < 1e-10 && "Pointer Octree must aggregate all coincident particles' masses");
+
+    // Compute forces: observer at (0.8, 0.5, 0.5) must feel attraction of 3 masses at (0.5, 0.5, 0.5)
+    compute_forces_linearized(particles, lin_tree, 1.0, 0.5, 0.01, 1);
+    double dx = 0.8 - 0.5;
+    double expected_ax = -1.0 * 3.0 * dx / std::pow(dx * dx + 0.01 * 0.01, 1.5);
+    assert(std::abs(particles[3].ax - expected_ax) < 1e-3 && "Observer must feel force from all coincident particles");
+    (void)expected_ax;
 
     std::cout << "PASSED\n";
 }
@@ -150,7 +212,6 @@ void test_theta_accuracy_tradeoff() {
     auto particles_ref = generate_uniform(N, 1.0, 1.0, 42);
     compute_forces_direct(particles_ref, G, softening);
 
-    double prev_error = 1e10;
     for (double theta : {0.3, 0.5, 0.7, 1.0}) {
         auto particles = generate_uniform(N, 1.0, 1.0, 42);
         Octree tree;
@@ -158,16 +219,20 @@ void test_theta_accuracy_tradeoff() {
         compute_forces_linearized(particles, tree, G, theta, softening, 1);
 
         double total_error = 0.0;
+        double total_direct = 0.0;
         for (int i = 0; i < N; ++i) {
-            total_error += std::abs(particles[i].ax - particles_ref[i].ax);
-            total_error += std::abs(particles[i].ay - particles_ref[i].ay);
-            total_error += std::abs(particles[i].az - particles_ref[i].az);
+            double dax = particles[i].ax - particles_ref[i].ax;
+            double day = particles[i].ay - particles_ref[i].ay;
+            double daz = particles[i].az - particles_ref[i].az;
+            total_error += std::sqrt(dax * dax + day * day + daz * daz);
+            total_direct += std::sqrt(particles_ref[i].ax * particles_ref[i].ax +
+                                      particles_ref[i].ay * particles_ref[i].ay +
+                                      particles_ref[i].az * particles_ref[i].az);
         }
 
-        std::cout << "θ=" << theta << " err=" << total_error << " ";
-
-        // Larger theta → larger error (less accurate, more approximation)
-        // This is a general trend, not strict monotonic for all inputs
+        double rel_vec_error = total_error / total_direct;
+        std::cout << "θ=" << theta << " rel_vec_err=" << rel_vec_error << " ";
+        assert(!std::isnan(rel_vec_error) && "Error should never be NaN");
     }
 
     std::cout << "PASSED\n";
@@ -180,6 +245,7 @@ int main() {
     test_bh_vs_direct();
     test_linearized_vs_pointer_forces();
     test_no_self_interaction();
+    test_coincident_particles_max_depth();
     test_theta_accuracy_tradeoff();
 
     std::cout << "\nAll Force tests PASSED ✓\n\n";

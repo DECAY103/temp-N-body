@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/home/res/Documents/PC/Project/include
 
-CXX_FLAGS = -O3 -DNDEBUG -std=gnu++17 -O2 -Wall
+CXX_FLAGS = -O3 -DNDEBUG -std=gnu++17 -O2 -Wall -UNDEBUG
 

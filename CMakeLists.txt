@@ -107,6 +107,23 @@ if(ENABLE_MPI)
 endif()
 
 # -------------------------------------------------------------------
+# CTest Registration
+# -------------------------------------------------------------------
+enable_testing()
+add_test(NAME test_morton COMMAND test_morton)
+add_test(NAME test_octree COMMAND test_octree)
+add_test(NAME test_force COMMAND test_force)
+add_test(NAME test_partition COMMAND test_partition)
+add_test(NAME test_load_balancer COMMAND test_load_balancer)
+if(ENABLE_MPI)
+    if(MPIEXEC_EXECUTABLE)
+        add_test(NAME test_mpi_comm COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2 $<TARGET_FILE:test_mpi_comm>)
+    else()
+        add_test(NAME test_mpi_comm COMMAND mpirun -np 2 $<TARGET_FILE:test_mpi_comm>)
+    endif()
+endif()
+
+# -------------------------------------------------------------------
 # Compiler flags
 # -------------------------------------------------------------------
 target_compile_options(al_bh PRIVATE -O2 -Wall -Wextra)
@@ -115,5 +132,15 @@ target_compile_options(test_octree PRIVATE -O2 -Wall)
 target_compile_options(test_force PRIVATE -O2 -Wall)
 target_compile_options(test_partition PRIVATE -O2 -Wall)
 target_compile_options(test_load_balancer PRIVATE -O2 -Wall)
+
+# Ensure assertions are never stripped in tests
+target_compile_options(test_morton PRIVATE -UNDEBUG)
+target_compile_options(test_octree PRIVATE -UNDEBUG)
+target_compile_options(test_force PRIVATE -UNDEBUG)
+target_compile_options(test_partition PRIVATE -UNDEBUG)
+target_compile_options(test_load_balancer PRIVATE -UNDEBUG)
+if(ENABLE_MPI)
+    target_compile_options(test_mpi_comm PRIVATE -UNDEBUG)
+endif()
 
 message(STATUS "AL-BH configured: MPI=${ENABLE_MPI}, OpenMP=${ENABLE_OPENMP}")

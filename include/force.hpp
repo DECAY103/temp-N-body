@@ -50,15 +50,15 @@ void pairwise_accel(double px, double py, double pz,
                     double G, double softening,
                     double& ax, double& ay, double& az);
 
-// Recursive tree walk for linearized tree
+// Recursive tree walk for linearized tree (target_id is unique particle ID for self-exclusion)
 void tree_walk_linearized(int node_idx, const Octree& tree,
-                           double px, double py, double pz, int self_idx,
+                           double px, double py, double pz, int target_id,
                            double G, double theta, double softening,
                            double& ax, double& ay, double& az);
 
 // Recursive tree walk for pointer-based tree
 void tree_walk_pointer(const PointerOctreeNode* node,
-                        double px, double py, double pz, int self_idx,
+                        double px, double py, double pz, int target_id,
                         double G, double theta, double softening,
                         double& ax, double& ay, double& az);
 

@@ -28,12 +28,14 @@ struct PointerOctreeNode {
     // --- Tree structure (heap-allocated children) ---
     std::unique_ptr<PointerOctreeNode> children[8];
     int particle_index;   // index into particles[] if leaf (-1 if internal)
+    int particle_id;      // unique global ID of particle if leaf (-1 if internal)
     int particle_count;
+    std::vector<int> overflow_indices; // coincident particles at MAX_DEPTH
 
     PointerOctreeNode()
         : com_x(0), com_y(0), com_z(0), total_mass(0),
           origin_x(0), origin_y(0), origin_z(0), size(0),
-          particle_index(-1), particle_count(0) {}
+          particle_index(-1), particle_id(-1), particle_count(0) {}
 };
 
 class PointerOctree {

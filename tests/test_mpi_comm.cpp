@@ -47,6 +47,44 @@ int main(int argc, char** argv) {
         }
     }
 
+    // 1b. Test True Non-Blocking Overlap Exchange
+    {
+        if (ctx.is_root()) std::cout << "[TEST] True Non-Blocking MPI Overlap Exchange... " << std::flush;
+
+        int local_count = 50 + ctx.rank * 10;
+        std::vector<Particle> local_particles(local_count);
+        for (int i = 0; i < local_count; ++i) {
+            local_particles[i].x = ctx.rank * 5.0 + i;
+            local_particles[i].id = ctx.rank * 1000 + i;
+        }
+
+        std::vector<Particle> global_particles;
+        // Start exchange asynchronously
+        auto handle = start_exchange_all_particles(local_particles, global_particles, ctx);
+
+        // Do independent local computation while transfer is in flight
+        double local_sum = 0.0;
+        for (int i = 0; i < local_count; ++i) {
+            local_sum += local_particles[i].x * local_particles[i].x;
+        }
+        (void)local_sum;
+
+        // Complete exchange
+        double comm_time = wait_exchange_all_particles(handle);
+
+        int expected_total = 0;
+        for (int r = 0; r < ctx.size; ++r) {
+            expected_total += (50 + r * 10);
+        }
+
+        assert(static_cast<int>(global_particles.size()) == expected_total);
+
+        if (ctx.is_root()) {
+            std::cout << "PASSED (Total: " << expected_total 
+                      << ", Overlap Comm Time: " << comm_time * 1000 << " ms)\n";
+        }
+    }
+
     // 2. Test Energy Reduction
     {
         if (ctx.is_root()) std::cout << "[TEST] Real MPI_Reduce Energy Reduction... " << std::flush;
@@ -91,6 +129,7 @@ int main(int argc, char** argv) {
         assert(static_cast<int>(local.size()) == 10);
         for (const auto& p : local) {
             assert(p.owner_rank == ctx.rank);
+            (void)p;
         }
 
         if (ctx.is_root()) {

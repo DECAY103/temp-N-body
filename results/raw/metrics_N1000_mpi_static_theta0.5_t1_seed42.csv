@@ -1,0 +1,3 @@
+timestep,rank,local_particles,tree_build_time,force_compute_time,comm_time,rebalance_time,total_step_time,imbalance_ratio,particles_migrated,kinetic_energy,potential_energy
+1,0,481,0.000087,0.001040,0.000305,0.000000,0.001434,1.1156,0,0.0000022170,-0.9498225327
+2,0,481,0.000083,0.001054,0.000200,0.000000,0.001339,1.1115,0,0.0000088683,-0.9498291769

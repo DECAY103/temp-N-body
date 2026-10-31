@@ -75,6 +75,7 @@ void test_ownership_and_lookup() {
             // Verify binary search lookup
             int found_rank = find_owner_rank(particles[i].morton_key, partitions);
             assert(found_rank == r);
+            (void)found_rank;
         }
     }
 
@@ -118,6 +119,38 @@ void test_morton_vs_static_imbalance() {
               << " vs Morton Imbalance=" << morton_imbalance << " PASSED\n";
 }
 
+void test_geometric_slab_spatial_ownership() {
+    std::cout << "[TEST] Static Geometric Slab Spatial Ownership... ";
+
+    int N = 500;
+    int P = 4;
+    double box_size = 1.0;
+    double slab_width = box_size / P;
+
+    auto particles = generate_uniform(N, box_size, 1.0, 99);
+    // Sort particles by slab before static partitioning
+    sort_by_geometric_slabs(particles, P, box_size);
+
+    auto partitions = partition_static_geometric(particles, P, box_size);
+    assign_ownership(particles, partitions);
+
+    // Verify each rank's particles strictly fall within that rank's spatial slab
+    for (int r = 0; r < P; ++r) {
+        double x_min = r * slab_width - 1e-9;
+        double x_max = (r + 1) * slab_width + 1e-9;
+
+        for (int i = partitions[r].start_idx; i < partitions[r].end_idx; ++i) {
+            assert(particles[i].owner_rank == r);
+            assert(particles[i].x >= x_min && particles[i].x <= x_max &&
+                   "Particle x-coordinate must fall within its assigned spatial slab");
+        }
+        (void)x_min;
+        (void)x_max;
+    }
+
+    std::cout << "PASSED\n";
+}
+
 int main() {
     std::cout << "\n=== Domain Decomposition & Partitioning Test Suite (Milestone 3) ===\n\n";
 
@@ -125,6 +158,7 @@ int main() {
     test_morton_range_monotonicity();
     test_ownership_and_lookup();
     test_morton_vs_static_imbalance();
+    test_geometric_slab_spatial_ownership();
 
     std::cout << "\nAll Partition tests PASSED ✓\n\n";
     return 0;

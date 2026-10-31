@@ -61,6 +61,7 @@ void test_two_particles() {
     assert(std::abs(tree.root().com_x - expected_com) < 1e-10);
     assert(std::abs(tree.root().com_y - expected_com) < 1e-10);
     assert(std::abs(tree.root().com_z - expected_com) < 1e-10);
+    (void)expected_com;
 
     // Root should have particle_count = 2
     assert(tree.root().particle_count == 2);
@@ -130,6 +131,35 @@ void test_linearized_vs_pointer() {
     std::cout << "PASSED\n";
 }
 
+void test_coincident_particles() {
+    std::cout << "[TEST] Coincident particles at MAX_DEPTH... ";
+
+    std::vector<Particle> particles(5);
+    for (int i = 0; i < 5; ++i) {
+        particles[i].x = 0.5;
+        particles[i].y = 0.5;
+        particles[i].z = 0.5;
+        particles[i].mass = 2.0;
+        particles[i].id = i;
+    }
+
+    Octree lin_tree;
+    lin_tree.build(particles, 0.0, 0.0, 0.0, 1.0);
+
+    assert(lin_tree.root().particle_count == 5);
+    assert(std::abs(lin_tree.root().total_mass - 10.0) < 1e-10);
+    assert(std::abs(lin_tree.root().com_x - 0.5) < 1e-10);
+
+    PointerOctree ptr_tree;
+    ptr_tree.build(particles, 0.0, 0.0, 0.0, 1.0);
+
+    assert(ptr_tree.root_node->particle_count == 5);
+    assert(std::abs(ptr_tree.root_node->total_mass - 10.0) < 1e-10);
+    assert(std::abs(ptr_tree.root_node->com_x - 0.5) < 1e-10);
+
+    std::cout << "PASSED\n";
+}
+
 int main() {
     std::cout << "\n=== Octree Test Suite ===\n\n";
 
@@ -138,6 +168,7 @@ int main() {
     test_many_particles();
     test_plummer_particles();
     test_linearized_vs_pointer();
+    test_coincident_particles();
 
     std::cout << "\nAll Octree tests PASSED ✓\n\n";
     return 0;

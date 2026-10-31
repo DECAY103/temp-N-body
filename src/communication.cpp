@@ -25,6 +25,53 @@ void finalize_mpi() {
     }
 }
 
+NonblockingExchangeHandle start_exchange_all_particles(
+    const std::vector<Particle>& local_particles,
+    std::vector<Particle>& global_particles,
+    const MPIContext& ctx) {
+    NonblockingExchangeHandle handle;
+    if (ctx.size <= 1) {
+        global_particles = local_particles;
+        return handle;
+    }
+
+    handle.t_start = MPI_Wtime();
+
+    int local_n = static_cast<int>(local_particles.size());
+    std::vector<int> counts(ctx.size);
+    MPI_Allgather(&local_n, 1, MPI_INT, counts.data(), 1, MPI_INT, MPI_COMM_WORLD);
+
+    int total_n = 0;
+    std::vector<int> byte_counts(ctx.size);
+    std::vector<int> displs(ctx.size);
+
+    for (int r = 0; r < ctx.size; ++r) {
+        displs[r] = total_n * sizeof(Particle);
+        byte_counts[r] = counts[r] * sizeof(Particle);
+        total_n += counts[r];
+    }
+
+    global_particles.resize(total_n);
+
+    int send_bytes = local_n * sizeof(Particle);
+    const void* send_buf = local_particles.empty() ? nullptr : local_particles.data();
+    void* recv_buf = global_particles.empty() ? nullptr : global_particles.data();
+
+    MPI_Iallgatherv(send_buf, send_bytes, MPI_BYTE,
+                    recv_buf, byte_counts.data(), displs.data(), MPI_BYTE,
+                    MPI_COMM_WORLD, &handle.request);
+    return handle;
+}
+
+double wait_exchange_all_particles(NonblockingExchangeHandle& handle) {
+    if (handle.request != MPI_REQUEST_NULL) {
+        MPI_Wait(&handle.request, MPI_STATUS_IGNORE);
+        handle.request = MPI_REQUEST_NULL;
+        return MPI_Wtime() - handle.t_start;
+    }
+    return 0.0;
+}
+
 double exchange_all_particles(const std::vector<Particle>& local_particles,
                               std::vector<Particle>& global_particles,
                               const MPIContext& ctx,
@@ -32,6 +79,11 @@ double exchange_all_particles(const std::vector<Particle>& local_particles,
     if (ctx.size <= 1) {
         global_particles = local_particles;
         return 0.0;
+    }
+
+    if (use_nonblocking) {
+        auto handle = start_exchange_all_particles(local_particles, global_particles, ctx);
+        return wait_exchange_all_particles(handle);
     }
 
     double t_start = MPI_Wtime();
@@ -56,17 +108,9 @@ double exchange_all_particles(const std::vector<Particle>& local_particles,
     const void* send_buf = local_particles.empty() ? nullptr : local_particles.data();
     void* recv_buf = global_particles.empty() ? nullptr : global_particles.data();
 
-    if (use_nonblocking) {
-        MPI_Request req;
-        MPI_Iallgatherv(send_buf, send_bytes, MPI_BYTE,
-                        recv_buf, byte_counts.data(), displs.data(), MPI_BYTE,
-                        MPI_COMM_WORLD, &req);
-        MPI_Wait(&req, MPI_STATUS_IGNORE);
-    } else {
-        MPI_Allgatherv(send_buf, send_bytes, MPI_BYTE,
-                       recv_buf, byte_counts.data(), displs.data(), MPI_BYTE,
-                       MPI_COMM_WORLD);
-    }
+    MPI_Allgatherv(send_buf, send_bytes, MPI_BYTE,
+                   recv_buf, byte_counts.data(), displs.data(), MPI_BYTE,
+                   MPI_COMM_WORLD);
 
     double t_end = MPI_Wtime();
     return t_end - t_start;

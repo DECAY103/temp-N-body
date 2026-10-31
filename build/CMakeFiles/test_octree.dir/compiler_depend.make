@@ -188,12 +188,16 @@ CMakeFiles/test_octree.dir/src/octree.cpp.o: /home/res/Documents/PC/Project/src/
   /usr/include/c++/13/bits/cpp_type_traits.h \
   /usr/include/c++/13/bits/cxxabi_forced.h \
   /usr/include/c++/13/bits/cxxabi_init_exception.h \
+  /usr/include/c++/13/bits/enable_special_members.h \
+  /usr/include/c++/13/bits/erase_if.h \
   /usr/include/c++/13/bits/exception.h \
   /usr/include/c++/13/bits/exception_defines.h \
   /usr/include/c++/13/bits/exception_ptr.h \
   /usr/include/c++/13/bits/functexcept.h \
   /usr/include/c++/13/bits/functional_hash.h \
   /usr/include/c++/13/bits/hash_bytes.h \
+  /usr/include/c++/13/bits/hashtable.h \
+  /usr/include/c++/13/bits/hashtable_policy.h \
   /usr/include/c++/13/bits/invoke.h \
   /usr/include/c++/13/bits/localefwd.h \
   /usr/include/c++/13/bits/memory_resource.h \
@@ -201,6 +205,7 @@ CMakeFiles/test_octree.dir/src/octree.cpp.o: /home/res/Documents/PC/Project/src/
   /usr/include/c++/13/bits/move.h \
   /usr/include/c++/13/bits/nested_exception.h \
   /usr/include/c++/13/bits/new_allocator.h \
+  /usr/include/c++/13/bits/node_handle.h \
   /usr/include/c++/13/bits/ostream_insert.h \
   /usr/include/c++/13/bits/postypes.h \
   /usr/include/c++/13/bits/predefined_ops.h \
@@ -221,6 +226,7 @@ CMakeFiles/test_octree.dir/src/octree.cpp.o: /home/res/Documents/PC/Project/src/
   /usr/include/c++/13/bits/stl_vector.h \
   /usr/include/c++/13/bits/string_view.tcc \
   /usr/include/c++/13/bits/stringfwd.h \
+  /usr/include/c++/13/bits/unordered_map.h \
   /usr/include/c++/13/bits/uses_allocator.h \
   /usr/include/c++/13/bits/uses_allocator_args.h \
   /usr/include/c++/13/bits/utility.h \
@@ -236,6 +242,7 @@ CMakeFiles/test_octree.dir/src/octree.cpp.o: /home/res/Documents/PC/Project/src/
   /usr/include/c++/13/debug/assertions.h \
   /usr/include/c++/13/debug/debug.h \
   /usr/include/c++/13/exception \
+  /usr/include/c++/13/ext/aligned_buffer.h \
   /usr/include/c++/13/ext/alloc_traits.h \
   /usr/include/c++/13/ext/numeric_traits.h \
   /usr/include/c++/13/ext/string_conversions.h \
@@ -250,6 +257,7 @@ CMakeFiles/test_octree.dir/src/octree.cpp.o: /home/res/Documents/PC/Project/src/
   /usr/include/c++/13/tuple \
   /usr/include/c++/13/type_traits \
   /usr/include/c++/13/typeinfo \
+  /usr/include/c++/13/unordered_map \
   /usr/include/c++/13/vector \
   /usr/include/ctype.h \
   /usr/include/endian.h \
@@ -765,12 +773,16 @@ CMakeFiles/test_octree.dir/tests/test_octree.cpp.o: /home/res/Documents/PC/Proje
   /usr/include/c++/13/bits/cpp_type_traits.h \
   /usr/include/c++/13/bits/cxxabi_forced.h \
   /usr/include/c++/13/bits/cxxabi_init_exception.h \
+  /usr/include/c++/13/bits/enable_special_members.h \
+  /usr/include/c++/13/bits/erase_if.h \
   /usr/include/c++/13/bits/exception.h \
   /usr/include/c++/13/bits/exception_defines.h \
   /usr/include/c++/13/bits/exception_ptr.h \
   /usr/include/c++/13/bits/functexcept.h \
   /usr/include/c++/13/bits/functional_hash.h \
   /usr/include/c++/13/bits/hash_bytes.h \
+  /usr/include/c++/13/bits/hashtable.h \
+  /usr/include/c++/13/bits/hashtable_policy.h \
   /usr/include/c++/13/bits/invoke.h \
   /usr/include/c++/13/bits/ios_base.h \
   /usr/include/c++/13/bits/istream.tcc \
@@ -784,6 +796,7 @@ CMakeFiles/test_octree.dir/tests/test_octree.cpp.o: /home/res/Documents/PC/Proje
   /usr/include/c++/13/bits/move.h \
   /usr/include/c++/13/bits/nested_exception.h \
   /usr/include/c++/13/bits/new_allocator.h \
+  /usr/include/c++/13/bits/node_handle.h \
   /usr/include/c++/13/bits/ostream.tcc \
   /usr/include/c++/13/bits/ostream_insert.h \
   /usr/include/c++/13/bits/postypes.h \
@@ -814,6 +827,7 @@ CMakeFiles/test_octree.dir/tests/test_octree.cpp.o: /home/res/Documents/PC/Proje
   /usr/include/c++/13/bits/string_view.tcc \
   /usr/include/c++/13/bits/stringfwd.h \
   /usr/include/c++/13/bits/unique_ptr.h \
+  /usr/include/c++/13/bits/unordered_map.h \
   /usr/include/c++/13/bits/uses_allocator.h \
   /usr/include/c++/13/bits/uses_allocator_args.h \
   /usr/include/c++/13/bits/utility.h \
@@ -871,6 +885,7 @@ CMakeFiles/test_octree.dir/tests/test_octree.cpp.o: /home/res/Documents/PC/Proje
   /usr/include/c++/13/tuple \
   /usr/include/c++/13/type_traits \
   /usr/include/c++/13/typeinfo \
+  /usr/include/c++/13/unordered_map \
   /usr/include/c++/13/vector \
   /usr/include/ctype.h \
   /usr/include/endian.h \
@@ -1059,6 +1074,10 @@ CMakeFiles/test_octree.dir/src/morton.cpp.o:
 
 /usr/include/c++/13/cwctype:
 
+/usr/include/c++/13/bits/locale_facets.tcc:
+
+/usr/include/c++/13/bits/locale_facets.h:
+
 /usr/include/x86_64-linux-gnu/bits/time64.h:
 
 /usr/include/c++/13/bits/basic_ios.h:
@@ -1074,6 +1093,10 @@ CMakeFiles/test_octree.dir/src/morton.cpp.o:
 /home/res/Documents/PC/Project/tests/test_octree.cpp:
 
 /usr/include/x86_64-linux-gnu/bits/types.h:
+
+/usr/include/c++/13/cassert:
+
+/usr/include/c++/13/bits/cpp_type_traits.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdio2.h:
 
@@ -1126,8 +1149,6 @@ CMakeFiles/test_octree.dir/src/morton.cpp.o:
 /usr/include/x86_64-linux-gnu/c++/13/bits/gthr.h:
 
 /usr/include/c++/13/bits/basic_ios.tcc:
-
-/usr/include/x86_64-linux-gnu/bits/wchar2-decl.h:
 
 /usr/include/c++/13/ext/type_traits.h:
 
@@ -1219,6 +1240,10 @@ CMakeFiles/test_octree.dir/src/morton.cpp.o:
 
 /usr/include/c++/13/bits/localefwd.h:
 
+/usr/include/c++/13/bits/streambuf_iterator.h:
+
+/usr/include/x86_64-linux-gnu/bits/flt-eval-method.h:
+
 /usr/include/c++/13/bits/stl_heap.h:
 
 /usr/include/c++/13/bits/vector.tcc:
@@ -1271,9 +1296,11 @@ CMakeFiles/test_octree.dir/src/morton.cpp.o:
 
 /usr/include/c++/13/bits/stringfwd.h:
 
-/usr/include/c++/13/backward/binders.h:
+/usr/include/c++/13/bits/locale_classes.tcc:
 
-/usr/include/c++/13/bits/allocator.h:
+/usr/include/c++/13/bits/uniform_int_dist.h:
+
+/usr/include/c++/13/backward/binders.h:
 
 /usr/include/c++/13/bits/stl_bvector.h:
 
@@ -1296,6 +1323,8 @@ CMakeFiles/test_octree.dir/src/morton.cpp.o:
 /usr/include/c++/13/bits/char_traits.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/clock_t.h:
+
+/usr/include/c++/13/bits/hashtable_policy.h:
 
 /usr/include/c++/13/bits/ostream_insert.h:
 
@@ -1349,8 +1378,6 @@ CMakeFiles/test_octree.dir/src/morton.cpp.o:
 
 /usr/include/c++/13/bits/requires_hosted.h:
 
-/usr/include/c++/13/bits/locale_facets.tcc:
-
 /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h:
 
 /usr/include/c++/13/bits/string_view.tcc:
@@ -1392,8 +1419,6 @@ CMakeFiles/test_octree.dir/tests/test_octree.cpp.o:
 /home/res/Documents/PC/Project/include/morton.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/wchar.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/error_t.h:
 
 /usr/include/c++/13/bits/stl_raw_storage_iter.h:
 
@@ -1443,8 +1468,6 @@ CMakeFiles/test_octree.dir/src/octree.cpp.o:
 
 /usr/include/x86_64-linux-gnu/bits/timex.h:
 
-/usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
-
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
 
 /usr/include/x86_64-linux-gnu/sys/types.h:
@@ -1457,23 +1480,47 @@ CMakeFiles/test_octree.dir/src/octree.cpp.o:
 
 /usr/include/c++/13/typeinfo:
 
+/usr/include/c++/13/bits/enable_special_members.h:
+
+/usr/include/x86_64-linux-gnu/bits/wchar2-decl.h:
+
+/usr/include/c++/13/bits/erase_if.h:
+
+/usr/include/c++/13/bits/shared_ptr_atomic.h:
+
 /usr/include/c++/13/bits/exception_ptr.h:
 
 /usr/include/c++/13/bits/istream.tcc:
+
+/usr/include/x86_64-linux-gnu/bits/types/error_t.h:
+
+/usr/include/c++/13/bits/hashtable.h:
 
 /usr/include/c++/13/tuple:
 
 /usr/include/c++/13/bits/nested_exception.h:
 
+/usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
+
+/usr/include/c++/13/bits/node_handle.h:
+
+/usr/include/c++/13/bits/unordered_map.h:
+
 /usr/include/c++/13/stdexcept:
+
+/usr/include/c++/13/bits/allocator.h:
+
+/usr/include/c++/13/unordered_map:
+
+/usr/include/c++/13/bits/ostream.tcc:
+
+/home/res/Documents/PC/Project/src/octree_pointer.cpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/FILE.h:
 
 /home/res/Documents/PC/Project/include/octree_pointer.hpp:
 
 /usr/include/c++/13/backward/auto_ptr.h:
-
-/usr/include/c++/13/bits/shared_ptr_atomic.h:
 
 /usr/include/wchar.h:
 
@@ -1549,15 +1596,7 @@ CMakeFiles/test_octree.dir/src/octree.cpp.o:
 
 /usr/include/c++/13/tr1/poly_hermite.tcc:
 
-/usr/include/c++/13/bits/cpp_type_traits.h:
-
-/usr/include/c++/13/cassert:
-
 /usr/include/c++/13/tr1/riemann_zeta.tcc:
-
-/usr/include/x86_64-linux-gnu/bits/flt-eval-method.h:
-
-/usr/include/c++/13/bits/streambuf_iterator.h:
 
 /usr/include/x86_64-linux-gnu/bits/fp-fast.h:
 
@@ -1582,13 +1621,3 @@ CMakeFiles/test_octree.dir/src/octree.cpp.o:
 /usr/include/x86_64-linux-gnu/c++/13/bits/opt_random.h:
 
 /usr/include/assert.h:
-
-/usr/include/c++/13/bits/uniform_int_dist.h:
-
-/usr/include/c++/13/bits/locale_classes.tcc:
-
-/usr/include/c++/13/bits/locale_facets.h:
-
-/home/res/Documents/PC/Project/src/octree_pointer.cpp:
-
-/usr/include/c++/13/bits/ostream.tcc:

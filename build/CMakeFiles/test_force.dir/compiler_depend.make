@@ -26,12 +26,16 @@ CMakeFiles/test_force.dir/src/force.cpp.o: /home/res/Documents/PC/Project/src/fo
   /usr/include/c++/13/bits/cpp_type_traits.h \
   /usr/include/c++/13/bits/cxxabi_forced.h \
   /usr/include/c++/13/bits/cxxabi_init_exception.h \
+  /usr/include/c++/13/bits/enable_special_members.h \
+  /usr/include/c++/13/bits/erase_if.h \
   /usr/include/c++/13/bits/exception.h \
   /usr/include/c++/13/bits/exception_defines.h \
   /usr/include/c++/13/bits/exception_ptr.h \
   /usr/include/c++/13/bits/functexcept.h \
   /usr/include/c++/13/bits/functional_hash.h \
   /usr/include/c++/13/bits/hash_bytes.h \
+  /usr/include/c++/13/bits/hashtable.h \
+  /usr/include/c++/13/bits/hashtable_policy.h \
   /usr/include/c++/13/bits/invoke.h \
   /usr/include/c++/13/bits/localefwd.h \
   /usr/include/c++/13/bits/memory_resource.h \
@@ -39,6 +43,7 @@ CMakeFiles/test_force.dir/src/force.cpp.o: /home/res/Documents/PC/Project/src/fo
   /usr/include/c++/13/bits/move.h \
   /usr/include/c++/13/bits/nested_exception.h \
   /usr/include/c++/13/bits/new_allocator.h \
+  /usr/include/c++/13/bits/node_handle.h \
   /usr/include/c++/13/bits/ostream_insert.h \
   /usr/include/c++/13/bits/postypes.h \
   /usr/include/c++/13/bits/predefined_ops.h \
@@ -66,6 +71,7 @@ CMakeFiles/test_force.dir/src/force.cpp.o: /home/res/Documents/PC/Project/src/fo
   /usr/include/c++/13/bits/string_view.tcc \
   /usr/include/c++/13/bits/stringfwd.h \
   /usr/include/c++/13/bits/unique_ptr.h \
+  /usr/include/c++/13/bits/unordered_map.h \
   /usr/include/c++/13/bits/uses_allocator.h \
   /usr/include/c++/13/bits/uses_allocator_args.h \
   /usr/include/c++/13/bits/utility.h \
@@ -114,6 +120,7 @@ CMakeFiles/test_force.dir/src/force.cpp.o: /home/res/Documents/PC/Project/src/fo
   /usr/include/c++/13/tuple \
   /usr/include/c++/13/type_traits \
   /usr/include/c++/13/typeinfo \
+  /usr/include/c++/13/unordered_map \
   /usr/include/c++/13/vector \
   /usr/include/ctype.h \
   /usr/include/endian.h \
@@ -416,12 +423,16 @@ CMakeFiles/test_force.dir/src/octree.cpp.o: /home/res/Documents/PC/Project/src/o
   /usr/include/c++/13/bits/cpp_type_traits.h \
   /usr/include/c++/13/bits/cxxabi_forced.h \
   /usr/include/c++/13/bits/cxxabi_init_exception.h \
+  /usr/include/c++/13/bits/enable_special_members.h \
+  /usr/include/c++/13/bits/erase_if.h \
   /usr/include/c++/13/bits/exception.h \
   /usr/include/c++/13/bits/exception_defines.h \
   /usr/include/c++/13/bits/exception_ptr.h \
   /usr/include/c++/13/bits/functexcept.h \
   /usr/include/c++/13/bits/functional_hash.h \
   /usr/include/c++/13/bits/hash_bytes.h \
+  /usr/include/c++/13/bits/hashtable.h \
+  /usr/include/c++/13/bits/hashtable_policy.h \
   /usr/include/c++/13/bits/invoke.h \
   /usr/include/c++/13/bits/localefwd.h \
   /usr/include/c++/13/bits/memory_resource.h \
@@ -429,6 +440,7 @@ CMakeFiles/test_force.dir/src/octree.cpp.o: /home/res/Documents/PC/Project/src/o
   /usr/include/c++/13/bits/move.h \
   /usr/include/c++/13/bits/nested_exception.h \
   /usr/include/c++/13/bits/new_allocator.h \
+  /usr/include/c++/13/bits/node_handle.h \
   /usr/include/c++/13/bits/ostream_insert.h \
   /usr/include/c++/13/bits/postypes.h \
   /usr/include/c++/13/bits/predefined_ops.h \
@@ -449,6 +461,7 @@ CMakeFiles/test_force.dir/src/octree.cpp.o: /home/res/Documents/PC/Project/src/o
   /usr/include/c++/13/bits/stl_vector.h \
   /usr/include/c++/13/bits/string_view.tcc \
   /usr/include/c++/13/bits/stringfwd.h \
+  /usr/include/c++/13/bits/unordered_map.h \
   /usr/include/c++/13/bits/uses_allocator.h \
   /usr/include/c++/13/bits/uses_allocator_args.h \
   /usr/include/c++/13/bits/utility.h \
@@ -464,6 +477,7 @@ CMakeFiles/test_force.dir/src/octree.cpp.o: /home/res/Documents/PC/Project/src/o
   /usr/include/c++/13/debug/assertions.h \
   /usr/include/c++/13/debug/debug.h \
   /usr/include/c++/13/exception \
+  /usr/include/c++/13/ext/aligned_buffer.h \
   /usr/include/c++/13/ext/alloc_traits.h \
   /usr/include/c++/13/ext/numeric_traits.h \
   /usr/include/c++/13/ext/string_conversions.h \
@@ -478,6 +492,7 @@ CMakeFiles/test_force.dir/src/octree.cpp.o: /home/res/Documents/PC/Project/src/o
   /usr/include/c++/13/tuple \
   /usr/include/c++/13/type_traits \
   /usr/include/c++/13/typeinfo \
+  /usr/include/c++/13/unordered_map \
   /usr/include/c++/13/vector \
   /usr/include/ctype.h \
   /usr/include/endian.h \
@@ -994,12 +1009,16 @@ CMakeFiles/test_force.dir/tests/test_force.cpp.o: /home/res/Documents/PC/Project
   /usr/include/c++/13/bits/cpp_type_traits.h \
   /usr/include/c++/13/bits/cxxabi_forced.h \
   /usr/include/c++/13/bits/cxxabi_init_exception.h \
+  /usr/include/c++/13/bits/enable_special_members.h \
+  /usr/include/c++/13/bits/erase_if.h \
   /usr/include/c++/13/bits/exception.h \
   /usr/include/c++/13/bits/exception_defines.h \
   /usr/include/c++/13/bits/exception_ptr.h \
   /usr/include/c++/13/bits/functexcept.h \
   /usr/include/c++/13/bits/functional_hash.h \
   /usr/include/c++/13/bits/hash_bytes.h \
+  /usr/include/c++/13/bits/hashtable.h \
+  /usr/include/c++/13/bits/hashtable_policy.h \
   /usr/include/c++/13/bits/invoke.h \
   /usr/include/c++/13/bits/ios_base.h \
   /usr/include/c++/13/bits/istream.tcc \
@@ -1013,6 +1032,7 @@ CMakeFiles/test_force.dir/tests/test_force.cpp.o: /home/res/Documents/PC/Project
   /usr/include/c++/13/bits/move.h \
   /usr/include/c++/13/bits/nested_exception.h \
   /usr/include/c++/13/bits/new_allocator.h \
+  /usr/include/c++/13/bits/node_handle.h \
   /usr/include/c++/13/bits/ostream.tcc \
   /usr/include/c++/13/bits/ostream_insert.h \
   /usr/include/c++/13/bits/postypes.h \
@@ -1043,6 +1063,7 @@ CMakeFiles/test_force.dir/tests/test_force.cpp.o: /home/res/Documents/PC/Project
   /usr/include/c++/13/bits/string_view.tcc \
   /usr/include/c++/13/bits/stringfwd.h \
   /usr/include/c++/13/bits/unique_ptr.h \
+  /usr/include/c++/13/bits/unordered_map.h \
   /usr/include/c++/13/bits/uses_allocator.h \
   /usr/include/c++/13/bits/uses_allocator_args.h \
   /usr/include/c++/13/bits/utility.h \
@@ -1100,6 +1121,7 @@ CMakeFiles/test_force.dir/tests/test_force.cpp.o: /home/res/Documents/PC/Project
   /usr/include/c++/13/tuple \
   /usr/include/c++/13/type_traits \
   /usr/include/c++/13/typeinfo \
+  /usr/include/c++/13/unordered_map \
   /usr/include/c++/13/vector \
   /usr/include/ctype.h \
   /usr/include/endian.h \
@@ -1297,7 +1319,13 @@ CMakeFiles/test_force.dir/src/morton.cpp.o:
 
 /usr/include/c++/13/cwctype:
 
-/usr/include/pthread.h:
+/usr/include/c++/13/bits/locale_facets.tcc:
+
+/usr/include/c++/13/bits/locale_facets.h:
+
+/usr/include/c++/13/bits/istream.tcc:
+
+/usr/include/c++/13/bits/ios_base.h:
 
 /usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h:
 
@@ -1340,8 +1368,6 @@ CMakeFiles/test_force.dir/src/morton.cpp.o:
 /usr/include/c++/13/tr1/bessel_function.tcc:
 
 /usr/include/c++/13/initializer_list:
-
-/usr/include/x86_64-linux-gnu/bits/wchar2-decl.h:
 
 /usr/include/c++/13/ext/type_traits.h:
 
@@ -1423,6 +1449,8 @@ CMakeFiles/test_force.dir/src/morton.cpp.o:
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/c++allocator.h:
 
+/usr/include/c++/13/bits/unordered_map.h:
+
 /usr/include/c++/13/bits/new_allocator.h:
 
 /usr/include/c++/13/bits/stl_uninitialized.h:
@@ -1431,13 +1459,13 @@ CMakeFiles/test_force.dir/src/morton.cpp.o:
 
 /usr/include/c++/13/bits/stl_tempbuf.h:
 
+/usr/include/c++/13/bits/stl_raw_storage_iter.h:
+
+/usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h:
+
 /usr/include/c++/13/bits/functexcept.h:
 
 /usr/include/x86_64-linux-gnu/bits/libc-header-start.h:
-
-/usr/include/c++/13/bits/alloc_traits.h:
-
-/usr/include/c++/13/bits/concept_check.h:
 
 /usr/include/c++/13/vector:
 
@@ -1446,6 +1474,12 @@ CMakeFiles/test_force.dir/src/morton.cpp.o:
 /usr/include/c++/13/bits/stl_algo.h:
 
 /home/res/Documents/PC/Project/src/force.cpp:
+
+/usr/include/x86_64-linux-gnu/bits/wchar2-decl.h:
+
+/usr/include/c++/13/bits/erase_if.h:
+
+/usr/include/c++/13/bits/shared_ptr_atomic.h:
 
 /usr/include/c++/13/cassert:
 
@@ -1457,10 +1491,6 @@ CMakeFiles/test_force.dir/src/morton.cpp.o:
 
 /usr/include/x86_64-linux-gnu/bits/types.h:
 
-/usr/include/stdio.h:
-
-/usr/include/c++/13/bits/stl_iterator_base_types.h:
-
 /usr/include/x86_64-linux-gnu/c++/13/bits/c++locale.h:
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/os_defines.h:
@@ -1469,11 +1499,15 @@ CMakeFiles/test_force.dir/src/morton.cpp.o:
 
 /usr/include/c++/13/bits/char_traits.h:
 
+/usr/include/c++/13/bits/hashtable_policy.h:
+
 /usr/include/x86_64-linux-gnu/bits/types/clock_t.h:
 
 /usr/include/c++/13/tr1/special_function_util.h:
 
 /usr/include/stdc-predef.h:
+
+/usr/include/c++/13/unordered_map:
 
 /usr/include/c++/13/bits/allocator.h:
 
@@ -1481,17 +1515,15 @@ CMakeFiles/test_force.dir/src/morton.cpp.o:
 
 /usr/include/c++/13/bits/stringfwd.h:
 
+/usr/include/c++/13/bits/locale_classes.tcc:
+
+/usr/include/c++/13/bits/uniform_int_dist.h:
+
 /usr/include/c++/13/backward/binders.h:
 
 /usr/include/features.h:
 
 /usr/include/c++/13/tr1/modified_bessel_func.tcc:
-
-/usr/include/c++/13/bits/exception_defines.h:
-
-/usr/include/x86_64-linux-gnu/bits/waitstatus.h:
-
-/usr/include/c++/13/bits/locale_facets.tcc:
 
 /usr/include/c++/13/bits/atomic_lockfree_defines.h:
 
@@ -1505,15 +1537,15 @@ CMakeFiles/test_force.dir/src/morton.cpp.o:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_timeval.h:
 
+/usr/include/x86_64-linux-gnu/bits/waitstatus.h:
+
+/usr/include/c++/13/bits/exception_defines.h:
+
 /usr/include/c++/13/bits/localefwd.h:
 
 /usr/include/c++/13/bits/streambuf_iterator.h:
 
 /usr/include/x86_64-linux-gnu/bits/flt-eval-method.h:
-
-/usr/include/endian.h:
-
-/usr/include/stdint.h:
 
 /home/res/Documents/PC/Project/include/octree.hpp:
 
@@ -1529,6 +1561,12 @@ CMakeFiles/test_force.dir/src/morton.cpp.o:
 
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h:
 
+/usr/include/c++/13/bits/exception.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
+
+/usr/include/x86_64-linux-gnu/bits/uintn-identity.h:
+
 /usr/include/c++/13/bits/basic_string.h:
 
 /usr/include/c++/13/tr1/poly_laguerre.tcc:
@@ -1539,11 +1577,17 @@ CMakeFiles/test_force.dir/src/morton.cpp.o:
 
 /usr/include/c++/13/bits/specfun.h:
 
+/usr/include/c++/13/bits/concept_check.h:
+
+/usr/include/c++/13/bits/alloc_traits.h:
+
 /usr/include/c++/13/bits/allocated_ptr.h:
 
 /usr/include/c++/13/bit:
 
 /usr/include/c++/13/bits/basic_string.tcc:
+
+/usr/include/c++/13/bits/enable_special_members.h:
 
 /usr/include/c++/13/bits/move.h:
 
@@ -1561,15 +1605,19 @@ CMakeFiles/test_force.dir/src/morton.cpp.o:
 
 /usr/include/asm-generic/errno-base.h:
 
-/usr/include/c++/13/bits/exception.h:
+/usr/include/c++/13/bits/cxxabi_forced.h:
 
-/usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
+/home/res/Documents/PC/Project/include/particle.hpp:
 
-/usr/include/x86_64-linux-gnu/bits/uintn-identity.h:
+/usr/include/c++/13/bits/stl_algobase.h:
+
+/usr/include/c++/13/bits/stl_construct.h:
+
+/usr/include/c++/13/backward/auto_ptr.h:
+
+/home/res/Documents/PC/Project/include/force.hpp:
 
 /usr/include/c++/13/bits/exception_ptr.h:
-
-/usr/include/c++/13/bits/istream.tcc:
 
 /usr/include/c++/13/tuple:
 
@@ -1583,17 +1631,11 @@ CMakeFiles/test_force.dir/src/morton.cpp.o:
 
 /usr/include/x86_64-linux-gnu/bits/struct_mutex.h:
 
-/usr/include/c++/13/bits/cxxabi_forced.h:
+/usr/include/x86_64-linux-gnu/bits/types/error_t.h:
 
-/home/res/Documents/PC/Project/include/particle.hpp:
+/usr/include/c++/13/bits/hashtable.h:
 
-/usr/include/c++/13/bits/stl_algobase.h:
-
-/usr/include/c++/13/bits/stl_construct.h:
-
-/usr/include/c++/13/backward/auto_ptr.h:
-
-/home/res/Documents/PC/Project/include/force.hpp:
+/usr/include/c++/13/bits/ostream_insert.h:
 
 /usr/include/c++/13/bits/invoke.h:
 
@@ -1605,15 +1647,7 @@ CMakeFiles/test_force.dir/src/morton.cpp.o:
 
 /usr/include/wchar.h:
 
-/usr/include/c++/13/bits/stl_raw_storage_iter.h:
-
-/usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/error_t.h:
-
 /usr/include/c++/13/bits/memoryfwd.h:
-
-/usr/include/c++/13/bits/ostream_insert.h:
 
 /usr/include/linux/errno.h:
 
@@ -1631,7 +1665,15 @@ CMakeFiles/test_force.dir/src/morton.cpp.o:
 
 /usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h:
 
-/usr/include/c++/13/bits/shared_ptr_atomic.h:
+/usr/include/pthread.h:
+
+/usr/include/endian.h:
+
+/usr/include/stdint.h:
+
+/usr/include/c++/13/bits/stl_iterator_base_types.h:
+
+/usr/include/stdio.h:
 
 CMakeFiles/test_force.dir/src/force.cpp.o:
 
@@ -1781,13 +1823,13 @@ CMakeFiles/test_force.dir/tests/test_force.cpp.o:
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h:
 
-/usr/include/c++/13/bits/ios_base.h:
-
 /usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h:
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h:
+
+/usr/include/c++/13/bits/node_handle.h:
 
 /usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
 
@@ -1811,6 +1853,10 @@ CMakeFiles/test_force.dir/tests/test_force.cpp.o:
 
 /usr/include/c++/13/stdexcept:
 
+/usr/include/c++/13/bits/ostream.tcc:
+
+/home/res/Documents/PC/Project/src/octree_pointer.cpp:
+
 /usr/lib/gcc/x86_64-linux-gnu/13/include/stdarg.h:
 
 /usr/include/c++/13/numeric:
@@ -1826,13 +1872,3 @@ CMakeFiles/test_force.dir/tests/test_force.cpp.o:
 /usr/include/x86_64-linux-gnu/c++/13/bits/opt_random.h:
 
 /usr/include/assert.h:
-
-/usr/include/c++/13/bits/uniform_int_dist.h:
-
-/usr/include/c++/13/bits/locale_classes.tcc:
-
-/usr/include/c++/13/bits/locale_facets.h:
-
-/home/res/Documents/PC/Project/src/octree_pointer.cpp:
-
-/usr/include/c++/13/bits/ostream.tcc:

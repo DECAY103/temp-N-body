@@ -19,12 +19,13 @@ struct Particle {
     double mass;          // particle mass (typically 1.0 for uniform)
     uint64_t morton_key;  // Z-order key for spatial sorting
     int owner_rank;       // MPI rank that owns this particle
+    int id;               // unique global particle ID for self-exclusion and tracking
 
     Particle()
         : x(0), y(0), z(0),
           vx(0), vy(0), vz(0),
           ax(0), ay(0), az(0),
-          mass(1.0), morton_key(0), owner_rank(0) {}
+          mass(1.0), morton_key(0), owner_rank(0), id(0) {}
 };
 
 // Distribution types for particle generation
@@ -51,7 +52,7 @@ std::vector<Particle> generate_plummer(int N, double box_size, double total_mass
 
 // Convenience wrapper that dispatches based on distribution type
 std::vector<Particle> generate_particles(Distribution dist, int N, double box_size,
-                                          double total_mass, int seed);
+                                          double total_mass, double plummer_a, int seed);
 
 // Compute total kinetic energy: sum(0.5 * m * v^2)
 double compute_kinetic_energy(const std::vector<Particle>& particles);

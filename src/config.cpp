@@ -37,6 +37,7 @@ bool parse_args(SimConfig& config, int argc, char** argv) {
                       << "  --dump-interval <int> Dump every N steps (default: 1)\n"
                       << "  --verbose <0|1>    Print per-timestep output (default: 1)\n"
                       << "  --linearized <0|1> Use linearized octree (default: 1)\n"
+                      << "  --mass <float>     Total mass of particles (default: 1.0)\n"
                       << "  --plummer-a <float> Plummer scale radius (default: 0.1)\n"
                       << std::endl;
             return false;
@@ -57,6 +58,7 @@ bool parse_args(SimConfig& config, int argc, char** argv) {
         else if (arg == "--softening") config.softening = std::atof(val.c_str());
         else if (arg == "--G")         config.G = std::atof(val.c_str());
         else if (arg == "--box")       config.box_size = std::atof(val.c_str());
+        else if (arg == "--mass")      config.total_mass = std::atof(val.c_str());
         else if (arg == "--dist")      config.distribution = std::atoi(val.c_str());
         else if (arg == "--seed")      config.seed = std::atoi(val.c_str());
         else if (arg == "--mode")      config.mode = val;
@@ -70,9 +72,60 @@ bool parse_args(SimConfig& config, int argc, char** argv) {
         else if (arg == "--linearized") config.use_linearized_tree = (std::atoi(val.c_str()) != 0);
         else if (arg == "--plummer-a") config.plummer_a = std::atof(val.c_str());
         else {
-            std::cerr << "WARNING: Unknown argument: " << arg << std::endl;
+            std::cerr << "ERROR: Unknown command-line argument: " << arg << std::endl;
+            return false;
         }
     }
+
+    // --- Validation ---
+    if (config.N <= 0) {
+        std::cerr << "ERROR: Invalid N (" << config.N << "). Must be > 0.\n";
+        return false;
+    }
+    if (config.timesteps <= 0) {
+        std::cerr << "ERROR: Invalid timesteps (" << config.timesteps << "). Must be > 0.\n";
+        return false;
+    }
+    if (config.dt <= 0.0) {
+        std::cerr << "ERROR: Invalid dt (" << config.dt << "). Must be > 0.\n";
+        return false;
+    }
+    if (config.theta < 0.0 || config.theta > 2.0) {
+        std::cerr << "ERROR: Invalid theta (" << config.theta << "). Must be in [0.0, 2.0].\n";
+        return false;
+    }
+    if (config.softening < 0.0) {
+        std::cerr << "ERROR: Invalid softening (" << config.softening << "). Must be >= 0.\n";
+        return false;
+    }
+    if (config.box_size <= 0.0) {
+        std::cerr << "ERROR: Invalid box_size (" << config.box_size << "). Must be > 0.\n";
+        return false;
+    }
+    if (config.total_mass <= 0.0) {
+        std::cerr << "ERROR: Invalid total_mass (" << config.total_mass << "). Must be > 0.\n";
+        return false;
+    }
+    if (config.num_threads <= 0) {
+        std::cerr << "ERROR: Invalid num_threads (" << config.num_threads << "). Must be >= 1.\n";
+        return false;
+    }
+    if (config.mode != "serial" && config.mode != "mpi_static" &&
+        config.mode != "mpi_morton" && config.mode != "full") {
+        std::cerr << "ERROR: Invalid mode '" << config.mode
+                  << "'. Must be serial, mpi_static, mpi_morton, or full.\n";
+        return false;
+    }
+    if (config.distribution != 0 && config.distribution != 1) {
+        std::cerr << "ERROR: Invalid distribution (" << config.distribution
+                  << "). Must be 0 (uniform) or 1 (plummer).\n";
+        return false;
+    }
+    if (config.plummer_a <= 0.0) {
+        std::cerr << "ERROR: Invalid plummer_a (" << config.plummer_a << "). Must be > 0.\n";
+        return false;
+    }
+
     return true;
 }
 
@@ -80,7 +133,9 @@ bool parse_args(SimConfig& config, int argc, char** argv) {
 void print_config(const SimConfig& config) {
     std::cout << "=== AL-BH Configuration ===\n"
               << "  Particles:    " << config.N << "\n"
+              << "  Total Mass:   " << config.total_mass << "\n"
               << "  Distribution: " << (config.distribution == 0 ? "uniform" : "plummer") << "\n"
+              << "  Plummer a:    " << config.plummer_a << "\n"
               << "  Timesteps:    " << config.timesteps << "\n"
               << "  dt:           " << config.dt << "\n"
               << "  theta:        " << config.theta << "\n"

@@ -73,6 +73,7 @@ htmlcov/
 ehthumbs.db
 Thumbs.db
 desktop.ini
+agent.md
 
 # Editors
 .vscode/

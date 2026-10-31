@@ -33,8 +33,11 @@ struct PartitionInfo {
 std::vector<PartitionInfo> partition_equal_count(
     const std::vector<Particle>& particles, int num_ranks);
 
+// Sort particles by their x-axis geometric slab
+void sort_by_geometric_slabs(std::vector<Particle>& particles, int num_ranks, double box_size);
+
 // Compute static geometric partitions (equal-volume, baseline)
-// Divides box into slabs along x-axis
+// Divides box into slabs along x-axis (expects particles sorted by geometric slabs)
 std::vector<PartitionInfo> partition_static_geometric(
     const std::vector<Particle>& particles, int num_ranks, double box_size);
 

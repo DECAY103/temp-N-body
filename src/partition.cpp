@@ -45,6 +45,20 @@ std::vector<PartitionInfo> partition_equal_count(
 }
 
 // ============================================================================
+// Sort particles by their x-axis geometric slab
+void sort_by_geometric_slabs(std::vector<Particle>& particles, int num_ranks, double box_size) {
+    if (num_ranks <= 1 || particles.empty()) return;
+    double slab_width = box_size / static_cast<double>(num_ranks);
+    std::sort(particles.begin(), particles.end(),
+        [slab_width, num_ranks](const Particle& a, const Particle& b) {
+            int slab_a = std::min(num_ranks - 1, std::max(0, static_cast<int>(a.x / slab_width)));
+            int slab_b = std::min(num_ranks - 1, std::max(0, static_cast<int>(b.x / slab_width)));
+            if (slab_a != slab_b) return slab_a < slab_b;
+            return a.x < b.x;
+        });
+}
+
+// ============================================================================
 // Static Geometric Partitioning (Equal-Volume Baseline)
 //
 // Divides the bounding box along the X-axis into equal-width slabs.
