@@ -1642,7 +1642,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </html>
 """
 
-def generate_web_viewer(results_dir, open_browser=False, max_particles=8000):
+def generate_web_viewer(results_dir, open_browser=False, max_particles=8000, metrics_file=None):
     """Scan results directory and generate interactive Three.js 3D viewer."""
     if not os.path.isdir(results_dir):
         print(f"Directory not found: {results_dir}")
@@ -1654,15 +1654,36 @@ def generate_web_viewer(results_dir, open_browser=False, max_particles=8000):
         print(f"No binary particle files found in {particles_dir}")
         return
 
-    csv_candidates = glob.glob(os.path.join(results_dir, "metrics_*.csv"))
-    metrics = load_metrics(csv_candidates[0]) if csv_candidates else []
-
-    print(f"[Viewer] Found {len(bin_files)} snapshots and {len(metrics)} metrics entries.")
-
-    # Package trajectory data
-    steps_data = []
+    # 1. Determine particle count from first snapshot
     p0 = load_particle_snapshot(bin_files[0])
     N_total = len(p0)
+
+    # 2. Intelligently select metrics CSV
+    selected_csv = None
+    if metrics_file:
+        if os.path.isfile(metrics_file):
+            selected_csv = metrics_file
+        else:
+            print(f"[Viewer] Warning: specified metrics file '{metrics_file}' not found.")
+
+    if not selected_csv:
+        csv_candidates = glob.glob(os.path.join(results_dir, "metrics_*.csv"))
+        if csv_candidates:
+            # Prefer CSV matching the particle count N in the snapshot
+            n_matches = [c for c in csv_candidates if f"_N{N_total}_" in os.path.basename(c)]
+            if n_matches:
+                selected_csv = max(n_matches, key=os.path.getmtime)
+            else:
+                selected_csv = max(csv_candidates, key=os.path.getmtime)
+
+    metrics = []
+    if selected_csv:
+        print(f"[Viewer] Using metrics file: {os.path.basename(selected_csv)}")
+        metrics = load_metrics(selected_csv)
+    else:
+        print("[Viewer] Note: No metrics CSV found.")
+
+    print(f"[Viewer] Found {len(bin_files)} snapshots and {len(metrics)} metrics entries.")
     
     # If N is large, sample representative particles (e.g. up to max_particles)
     sample_indices = None
@@ -1674,6 +1695,7 @@ def generate_web_viewer(results_dir, open_browser=False, max_particles=8000):
     else:
         N_display = N_total
 
+    steps_data = []
     for bfile in bin_files:
         step_num = int(os.path.basename(bfile).replace('step_', '').replace('.bin', ''))
         p = load_particle_snapshot(bfile)
@@ -1731,11 +1753,12 @@ def generate_web_viewer(results_dir, open_browser=False, max_particles=8000):
 def main():
     parser = argparse.ArgumentParser(description="Generate interactive 3D Web Viewer for AL-BH simulations.")
     parser.add_argument("--results", type=str, default="results/plummer_demo", help="Directory containing particle snapshots")
+    parser.add_argument("--metrics", type=str, default=None, help="Explicit path to metrics CSV (default: auto-detect matching N)")
     parser.add_argument("--open", action="store_true", help="Open viewer in default web browser")
     parser.add_argument("--max-particles", type=int, default=8000, help="Max particles to embed in 3D viewer (default: 8000)")
     args = parser.parse_args()
 
-    out_file = generate_web_viewer(args.results, args.open, args.max_particles)
+    out_file = generate_web_viewer(args.results, args.open, args.max_particles, args.metrics)
     if args.open and out_file:
         import webbrowser
         webbrowser.open(f"file://{out_file}")

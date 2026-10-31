@@ -117,10 +117,10 @@ def main():
         })
         print(f"  Ranks/Threads: {t:2d} | Total Time: {total_t:.4f}s | Force Time: {force_t:.4f}s")
 
-    t1_force = strong_results[0]['force_time']
     t1_total = strong_results[0]['total_time']
     for r in strong_results:
-        r['speedup'] = t1_force / r['force_time']
+        # The defined speedup is end-to-end runtime, not just force time.
+        r['speedup'] = t1_total / r['total_time']
         r['efficiency'] = r['speedup'] / r['threads']
 
     # -------------------------------------------------------------------------
@@ -149,22 +149,24 @@ def main():
     print("\n[3/5] Evaluating Load Imbalance: Static Geometric vs Adaptive Morton...")
     imb_dir = os.path.join(OUT_DIR, "imbalance")
     static_sub = os.path.join(imb_dir, "static")
-    morton_sub = os.path.join(imb_dir, "morton")
+    adaptive_sub = os.path.join(imb_dir, "adaptive")
     os.makedirs(static_sub, exist_ok=True)
-    os.makedirs(morton_sub, exist_ok=True)
+    os.makedirs(adaptive_sub, exist_ok=True)
 
     if args.mpi:
         cmd_static = f"mpirun --oversubscribe -np 4 {BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 1 --mode mpi_static --output {static_sub} --verbose 0"
-        cmd_morton = f"mpirun --oversubscribe -np 4 {BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 1 --mode mpi_morton --output {morton_sub} --verbose 0"
+        # mpi_morton is deliberately a no-rebalance baseline.  "full" is
+        # required for the adaptive series promised by this comparison.
+        cmd_adaptive = f"mpirun --oversubscribe -np 4 {BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 1 --mode full --output {adaptive_sub} --verbose 0"
     else:
         cmd_static = f"{BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 4 --mode mpi_static --output {static_sub} --verbose 0"
-        cmd_morton = f"{BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 4 --mode mpi_morton --output {morton_sub} --verbose 0"
+        cmd_adaptive = f"{BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 4 --mode full --output {adaptive_sub} --verbose 0"
 
     run_cmd(cmd_static)
-    run_cmd(cmd_morton)
+    run_cmd(cmd_adaptive)
 
     d_static = read_metrics_csv(static_sub)
-    d_morton = read_metrics_csv(morton_sub)
+    d_adaptive = read_metrics_csv(adaptive_sub)
 
     # -------------------------------------------------------------------------
     # 4. CACHE LOCALITY: LINEARIZED VS POINTER OCTREE (Metric #7)
@@ -253,13 +255,15 @@ def main():
     style_ax(ax, "4. Load Imbalance: Static vs. Adaptive", "Timestep", "Imbalance Ratio max(W) / min(W)")
     st_steps = d_static['timestep']
     ax.plot(st_steps, d_static['imbalance_ratio'], 'o-', color='#f43f5e', lw=2.0, label='Static Geometric Slicing')
-    ax.plot(st_steps, d_morton['imbalance_ratio'], 's-', color='#38bdf8', lw=2.0, label='Adaptive Morton SFC')
+    ax.plot(st_steps, d_adaptive['imbalance_ratio'], 's-', color='#38bdf8', lw=2.0, label='Adaptive Morton SFC')
     ax.axhline(1.0, linestyle='--', color='#34d399', lw=1.5, label='Optimal (1.0)')
+    # max(W) / min(W) is bounded below by 1.0; zero is not a valid ratio.
+    ax.set_ylim(bottom=1.0)
     ax.legend(facecolor='#1e293b', edgecolor='#334155', labelcolor='white')
 
     # Panel 5: Linearized Array vs Pointer Octree
     ax = axs[1, 1]
-    style_ax(ax, "5. Cache Locality: Array vs Pointer Octree", "Execution Phase", "Time per Timestep (ms)")
+    style_ax(ax, "5. Octree Implementation Timing (Cache-Locality Proxy)", "Execution Phase", "Time per Timestep (ms)")
     labels = ['Tree Build', 'Force Traversal']
     x_pos = np.arange(len(labels))
     width = 0.35
@@ -304,7 +308,7 @@ def main():
 
         f.write("\n## 3. Load Imbalance Comparison (Plummer Galaxy Cluster)\n\n")
         f.write(f"- **Static Geometric Slicing**: Mean Imbalance = **{np.mean(d_static['imbalance_ratio']):.2f}x** (Peak: **{np.max(d_static['imbalance_ratio']):.2f}x**)\n")
-        f.write(f"- **Adaptive Morton SFC**: Mean Imbalance = **{np.mean(d_morton['imbalance_ratio']):.2f}x** (Peak: **{np.max(d_morton['imbalance_ratio']):.2f}x**)\n")
+        f.write(f"- **Adaptive Morton SFC**: Mean Imbalance = **{np.mean(d_adaptive['imbalance_ratio']):.2f}x** (Peak: **{np.max(d_adaptive['imbalance_ratio']):.2f}x**)\n")
 
         f.write("\n## 4. Cache Locality Benefit (Octree Architecture)\n\n")
         f.write(f"- **Linearized Octree (Array)**: Tree Build = {lin_tree_t:.2f}ms, Force Traversal = {lin_force_t:.2f}ms\n")

@@ -262,6 +262,7 @@ def create_animation(particle_files, output_dir):
 def main():
     parser = argparse.ArgumentParser(description="Visualize AL-BH simulation metrics and trajectories.")
     parser.add_argument("--results", type=str, default="results/demo", help="Directory containing metrics and particles/")
+    parser.add_argument("--metrics", type=str, default=None, help="Explicit path to metrics CSV (default: auto-detect matching N)")
     parser.add_argument("--gif", action="store_true", help="Generate animated GIF of particle motion")
     parser.add_argument("--metrics-only", action="store_true", help="Only plot metrics CSV")
     args = parser.parse_args()
@@ -271,10 +272,38 @@ def main():
         print(f"Directory not found: {results_dir}")
         sys.exit(1)
 
-    # 1. Find metrics CSV
-    csv_candidates = glob.glob(os.path.join(results_dir, "metrics_*.csv"))
-    if csv_candidates:
-        plot_metrics(csv_candidates[0], results_dir)
+    # 1. Determine particle count if snapshots exist
+    particles_dir = os.path.join(results_dir, "particles")
+    p_files = sorted(glob.glob(os.path.join(particles_dir, "step_*.bin")))
+    n_expected = None
+    if p_files:
+        try:
+            p0 = load_particle_snapshot(p_files[0])
+            n_expected = len(p0)
+        except Exception:
+            pass
+
+    # 2. Find metrics CSV
+    selected_csv = None
+    if args.metrics:
+        if os.path.isfile(args.metrics):
+            selected_csv = args.metrics
+        else:
+            print(f"[Viz] Warning: specified metrics file '{args.metrics}' not found.")
+
+    if not selected_csv:
+        csv_candidates = glob.glob(os.path.join(results_dir, "metrics_*.csv"))
+        if csv_candidates:
+            if n_expected is not None:
+                n_matches = [c for c in csv_candidates if f"_N{n_expected}_" in os.path.basename(c)]
+                if n_matches:
+                    selected_csv = max(n_matches, key=os.path.getmtime)
+            if not selected_csv:
+                selected_csv = max(csv_candidates, key=os.path.getmtime)
+
+    if selected_csv:
+        print(f"[Viz] Using metrics file: {os.path.basename(selected_csv)}")
+        plot_metrics(selected_csv, results_dir)
     else:
         print("[Viz] Note: No metrics CSV found in results directory.")
 
