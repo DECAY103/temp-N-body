@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
-#include <sys/stat.h>
+#include <filesystem>
 
 namespace albh {
 
@@ -13,8 +13,8 @@ namespace albh {
 // Initialize the metrics logger — sets output path and writes CSV header
 // ============================================================================
 void MetricsLogger::init(const std::string& output_dir, const SimConfig& config) {
-    // Create output directory if it doesn't exist
-    mkdir(output_dir.c_str(), 0755);
+    // Create output directory if it doesn't exist (including parents)
+    std::filesystem::create_directories(output_dir);
 
     // Build filename from config
     std::ostringstream fname;
@@ -111,7 +111,7 @@ void MetricsLogger::finalize() {
 void dump_particle_state(const std::string& output_dir, int timestep,
                           const std::vector<Particle>& particles) {
     std::string particles_dir = output_dir + "/particles";
-    mkdir(particles_dir.c_str(), 0755);
+    std::filesystem::create_directories(particles_dir);
 
     // 1. Binary dump for high-performance 3D visualizer
     std::ostringstream fname;

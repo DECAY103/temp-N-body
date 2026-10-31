@@ -155,12 +155,12 @@ def main():
 
     if args.mpi:
         cmd_static = f"mpirun --oversubscribe -np 4 {BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 1 --mode mpi_static --output {static_sub} --verbose 0"
-        # mpi_morton is deliberately a no-rebalance baseline.  "full" is
-        # required for the adaptive series promised by this comparison.
-        cmd_adaptive = f"mpirun --oversubscribe -np 4 {BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 1 --mode full --output {adaptive_sub} --verbose 0"
+        # Both series start from the same static partition.  full_static then
+        # enables migration, making the recovery visible after the first step.
+        cmd_adaptive = f"mpirun --oversubscribe -np 4 {BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 1 --mode full_static --output {adaptive_sub} --verbose 0"
     else:
         cmd_static = f"{BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 4 --mode mpi_static --output {static_sub} --verbose 0"
-        cmd_adaptive = f"{BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 4 --mode full --output {adaptive_sub} --verbose 0"
+        cmd_adaptive = f"{BIN_PATH} --N {n_imb} --steps {steps_imb} --dist 1 --threads 4 --mode full_static --output {adaptive_sub} --verbose 0"
 
     run_cmd(cmd_static)
     run_cmd(cmd_adaptive)
@@ -255,7 +255,7 @@ def main():
     style_ax(ax, "4. Load Imbalance: Static vs. Adaptive", "Timestep", "Imbalance Ratio max(W) / min(W)")
     st_steps = d_static['timestep']
     ax.plot(st_steps, d_static['imbalance_ratio'], 'o-', color='#f43f5e', lw=2.0, label='Static Geometric Slicing')
-    ax.plot(st_steps, d_adaptive['imbalance_ratio'], 's-', color='#38bdf8', lw=2.0, label='Adaptive Morton SFC')
+    ax.plot(st_steps, d_adaptive['imbalance_ratio'], 's-', color='#38bdf8', lw=2.0, label='Adaptive from Static Start')
     ax.axhline(1.0, linestyle='--', color='#34d399', lw=1.5, label='Optimal (1.0)')
     # max(W) / min(W) is bounded below by 1.0; zero is not a valid ratio.
     ax.set_ylim(bottom=1.0)
@@ -308,7 +308,7 @@ def main():
 
         f.write("\n## 3. Load Imbalance Comparison (Plummer Galaxy Cluster)\n\n")
         f.write(f"- **Static Geometric Slicing**: Mean Imbalance = **{np.mean(d_static['imbalance_ratio']):.2f}x** (Peak: **{np.max(d_static['imbalance_ratio']):.2f}x**)\n")
-        f.write(f"- **Adaptive Morton SFC**: Mean Imbalance = **{np.mean(d_adaptive['imbalance_ratio']):.2f}x** (Peak: **{np.max(d_adaptive['imbalance_ratio']):.2f}x**)\n")
+        f.write(f"- **Adaptive from Static Start**: Mean Imbalance = **{np.mean(d_adaptive['imbalance_ratio']):.2f}x** (Peak: **{np.max(d_adaptive['imbalance_ratio']):.2f}x**)\n")
 
         f.write("\n## 4. Cache Locality Benefit (Octree Architecture)\n\n")
         f.write(f"- **Linearized Octree (Array)**: Tree Build = {lin_tree_t:.2f}ms, Force Traversal = {lin_force_t:.2f}ms\n")

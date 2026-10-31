@@ -131,6 +131,7 @@ void run_serial_simulation(std::vector<Particle>& particles, const SimConfig& co
 //   mpi_static  — static geometric partitioning (baseline, no rebalance)
 //   mpi_morton  — Morton-curve partitioning (no rebalance baseline)
 //   full        — Morton + adaptive rebalancing + non-blocking overlap
+//   full_static — static geometric start + adaptive rebalancing (benchmark)
 // ============================================================================
 void run_parallel_simulation(std::vector<Particle>& initial_particles,
                             const SimConfig& config,
@@ -151,10 +152,11 @@ void run_parallel_simulation(std::vector<Particle>& initial_particles,
     }
 
     int N_total = config.N;
-    bool is_static = (config.mode == "mpi_static");
-    // ONLY "full" mode enables adaptive rebalancing
-    // mpi_morton is now a true no-rebalance Morton baseline
-    bool enable_rebalance = (config.mode == "full");
+    // full_static deliberately shares mpi_static's initial decomposition, so
+    // the load-balancing benchmark can show recovery from the same hotspot.
+    bool is_static = (config.mode == "mpi_static" || config.mode == "full_static");
+    // mpi_morton remains a true no-rebalance Morton baseline.
+    bool enable_rebalance = (config.mode == "full" || config.mode == "full_static");
 
     // 1. Initial Domain Decomposition & Scattering
     std::vector<Particle> local_particles;
@@ -322,7 +324,7 @@ void run_parallel_simulation(std::vector<Particle>& initial_particles,
         comm_time_total += gather_workloads(local_time, all_workloads, ctx);
         current_imbalance = LoadBalancer::compute_imbalance(all_workloads);
 
-        // ONLY "full" mode triggers rebalancing — mpi_morton is a static Morton baseline
+        // Only adaptive modes trigger rebalancing; mpi_morton is a static Morton baseline.
         if (enable_rebalance && current_imbalance > config.rebalance_threshold) {
             if (ctx.size > 1) {
                 std::vector<int> target_ranks(local_particles.size(), ctx.rank);

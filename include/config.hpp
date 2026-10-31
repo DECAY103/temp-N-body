@@ -38,6 +38,8 @@ struct SimConfig {
     // "mpi_static"     = MPI with static equal-volume partitions
     // "mpi_morton"      = MPI with Morton decomposition, no rebalance
     // "full"           = full AL-BH (Morton + rebalance + non-blocking)
+    // "full_static"    = static initial partition + adaptive rebalancing
+    //                    (benchmark mode for demonstrating rebalancing)
     std::string mode   = "serial";
 
     // --- Communication ---

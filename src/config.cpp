@@ -28,7 +28,7 @@ bool parse_args(SimConfig& config, int argc, char** argv) {
                       << "  --box <float>      Simulation box size (default: 1.0)\n"
                       << "  --dist <0|1>       Distribution: 0=uniform, 1=plummer (default: 0)\n"
                       << "  --seed <int>       Random seed (default: 42)\n"
-                      << "  --mode <string>    Execution mode: serial|mpi_static|mpi_morton|full (default: serial)\n"
+                      << "  --mode <string>    Execution mode: serial|mpi_static|mpi_morton|full|full_static (default: serial)\n"
                       << "  --threads <int>    OpenMP threads per rank (default: 1)\n"
                       << "  --threshold <float> Rebalance threshold (default: 1.2)\n"
                       << "  --nonblocking <0|1> Use non-blocking MPI (default: 1)\n"
@@ -111,9 +111,10 @@ bool parse_args(SimConfig& config, int argc, char** argv) {
         return false;
     }
     if (config.mode != "serial" && config.mode != "mpi_static" &&
-        config.mode != "mpi_morton" && config.mode != "full") {
+        config.mode != "mpi_morton" && config.mode != "full" &&
+        config.mode != "full_static") {
         std::cerr << "ERROR: Invalid mode '" << config.mode
-                  << "'. Must be serial, mpi_static, mpi_morton, or full.\n";
+                  << "'. Must be serial, mpi_static, mpi_morton, full, or full_static.\n";
         return false;
     }
     if (config.distribution != 0 && config.distribution != 1) {

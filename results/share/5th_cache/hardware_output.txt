@@ -1,0 +1,79 @@
+=== AL-BH Configuration ===
+  Particles:    10000
+  Total Mass:   1
+  Distribution: uniform
+  Plummer a:    0.1
+  Timesteps:    10
+  dt:           0.001
+  theta:        0.5
+  softening:    0.01
+  G:            1
+  Box size:     1
+  Seed:         42
+  Mode:         serial
+  Threads:      1
+  Rebalance:    1.2
+  Non-blocking: yes
+  Linearized:   yes
+  Output:       results/raw
+  Dump particles: no
+===========================
+Generated 10000 particles (uniform) on Root Process
+
+[Serial Simulation] Starting 10 timesteps with 10000 particles
+
+[Timestep 0001/10] N=10000 | θ=0.50
+  Force: 0.0484s  Tree: 0.0012s  Comm: 0.0000s  Rebal: 0.0000s
+  Imbalance: 1.00  Migrated: 0  Total: 0.0496s
+  KE: 0.00000188  PE: nan  E: nan
+[Timestep 0002/10] N=10000 | θ=0.50
+  Force: 0.0439s  Tree: 0.0013s  Comm: 0.0000s  Rebal: 0.0000s
+  Imbalance: 1.00  Migrated: 0  Total: 0.0453s
+  KE: 0.00000751  PE: nan  E: nan
+[Timestep 0003/10] N=10000 | θ=0.50
+  Force: 0.0440s  Tree: 0.0011s  Comm: 0.0000s  Rebal: 0.0000s
+  Imbalance: 1.00  Migrated: 0  Total: 0.0451s
+  KE: 0.00001690  PE: nan  E: nan
+[Timestep 0004/10] N=10000 | θ=0.50
+  Force: 0.0435s  Tree: 0.0014s  Comm: 0.0000s  Rebal: 0.0000s
+  Imbalance: 1.00  Migrated: 0  Total: 0.0449s
+  KE: 0.00003005  PE: nan  E: nan
+[Timestep 0005/10] N=10000 | θ=0.50
+  Force: 0.0423s  Tree: 0.0010s  Comm: 0.0000s  Rebal: 0.0000s
+  Imbalance: 1.00  Migrated: 0  Total: 0.0434s
+  KE: 0.00004695  PE: nan  E: nan
+[Timestep 0006/10] N=10000 | θ=0.50
+  Force: 0.0419s  Tree: 0.0010s  Comm: 0.0000s  Rebal: 0.0000s
+  Imbalance: 1.00  Migrated: 0  Total: 0.0430s
+  KE: 0.00006761  PE: nan  E: nan
+[Timestep 0007/10] N=10000 | θ=0.50
+  Force: 0.0419s  Tree: 0.0010s  Comm: 0.0000s  Rebal: 0.0000s
+  Imbalance: 1.00  Migrated: 0  Total: 0.0430s
+  KE: 0.00009203  PE: nan  E: nan
+[Timestep 0008/10] N=10000 | θ=0.50
+  Force: 0.0420s  Tree: 0.0010s  Comm: 0.0000s  Rebal: 0.0000s
+  Imbalance: 1.00  Migrated: 0  Total: 0.0430s
+  KE: 0.00012021  PE: nan  E: nan
+[Timestep 0009/10] N=10000 | θ=0.50
+  Force: 0.0426s  Tree: 0.0010s  Comm: 0.0000s  Rebal: 0.0000s
+  Imbalance: 1.00  Migrated: 0  Total: 0.0437s
+  KE: 0.00015215  PE: nan  E: nan
+[Timestep 0010/10] N=10000 | θ=0.50
+  Force: 0.0417s  Tree: 0.0010s  Comm: 0.0000s  Rebal: 0.0000s
+  Imbalance: 1.00  Migrated: 0  Total: 0.0427s
+  KE: 0.00018784  PE: nan  E: nan
+[Metrics] Written to results/raw/metrics_N10000_serial_theta0.5_t1_seed42.csv (10 entries)
+
+[Serial Simulation] Complete.
+
+ Performance counter stats for './build/al_bh --N 10000 --steps 10 --linearized 1 --threads 1':
+
+       186,356,022      L1-dcache-load-misses                                                 
+     5,248,245,401      L1-dcache-loads                                                       
+         2,930,432      cache-misses                                                          
+       354,834,782      cache-references                                                      
+
+       3.227418901 seconds time elapsed
+
+       0.685101000 seconds user
+       1.383243000 seconds sys

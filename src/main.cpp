@@ -49,12 +49,13 @@ int main(int argc, char** argv) {
         if (ctx.is_root()) {
             albh::run_serial_simulation(particles, config);
         }
-    } else if (config.mode == "mpi_static" || config.mode == "mpi_morton" || config.mode == "full") {
+    } else if (config.mode == "mpi_static" || config.mode == "mpi_morton" ||
+               config.mode == "full" || config.mode == "full_static") {
         albh::run_parallel_simulation(particles, config, ctx);
     } else {
         if (ctx.is_root()) {
             std::cerr << "ERROR: Unknown mode '" << config.mode << "'\n"
-                      << "Available: serial, mpi_static, mpi_morton, full\n";
+                      << "Available: serial, mpi_static, mpi_morton, full, full_static\n";
         }
         albh::finalize_mpi();
         return 1;

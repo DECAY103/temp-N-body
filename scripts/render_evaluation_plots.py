@@ -105,7 +105,7 @@ def main():
     ax.plot(static["timestep"], static["imbalance_ratio"], "o-", color="#f43f5e",
             lw=2.0, markersize=5, label="Static geometric slicing")
     ax.plot(adaptive["timestep"], adaptive["imbalance_ratio"], "s-", color="#38bdf8",
-            lw=2.0, markersize=5, label="Adaptive Morton SFC")
+            lw=2.0, markersize=5, label="Adaptive from static start")
     ax.axhline(1.0, linestyle="--", color="#34d399", lw=1.5, label="Optimal (1.0)")
     # A ratio of max/min is never zero; logarithmic scaling also keeps the
     # near-balanced adaptive series visible beside the static series.
