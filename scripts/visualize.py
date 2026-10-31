@@ -50,6 +50,10 @@ def plot_metrics(csv_path, output_dir):
         return
 
     data = np.genfromtxt(csv_path, delimiter=',', names=True)
+    if data.ndim == 0:
+        data = np.array([data])
+    if 'rank' in data.dtype.names:
+        data = data[data['rank'] == 0]
     steps = data['timestep']
     ke = data['kinetic_energy']
     pe = data['potential_energy']

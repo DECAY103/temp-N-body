@@ -1,3 +1,5 @@
-timestep,rank,local_particles,tree_build_time,force_compute_time,comm_time,rebalance_time,total_step_time,imbalance_ratio,particles_migrated,kinetic_energy,potential_energy
-1,0,500,0.000075,0.001108,0.000175,0.000000,0.001360,1.0731,0,0.0000022170,-0.9498225327
-2,0,500,0.000080,0.001175,0.000081,0.000000,0.001337,1.0215,0,0.0000088683,-0.9498291769
+timestep,rank,local_particles,tree_build_time,force_compute_time,comm_time,rebalance_time,total_step_time,imbalance_ratio,particles_migrated,particles_migrated_in,particles_migrated_out,kinetic_energy,potential_energy
+1,0,500,0.000163,0.001118,0.001352,0.000048,0.002700,1.6325,0,0,0,0.0000022170,-0.9498225327
+1,1,500,0.000137,0.001826,0.001352,0.000048,0.002700,1.6325,0,0,0,0.0000022170,-0.9498225327
+2,0,500,0.000074,0.001150,0.000672,0.000018,0.001933,1.5130,0,0,0,0.0000088683,-0.9498291769
+2,1,500,0.000092,0.001740,0.000672,0.000018,0.001933,1.5130,0,0,0,0.0000088683,-0.9498291769

@@ -45,10 +45,11 @@ void MetricsLogger::flush() {
         return;
     }
 
-    // CSV header
+    // CSV header: full per-rank performance, load, and migration metrics
     out << "timestep,rank,local_particles,tree_build_time,force_compute_time,"
         << "comm_time,rebalance_time,total_step_time,imbalance_ratio,"
-        << "particles_migrated,kinetic_energy,potential_energy\n";
+        << "particles_migrated,particles_migrated_in,particles_migrated_out,"
+        << "kinetic_energy,potential_energy\n";
 
     // Data rows
     for (const auto& m : buffer_) {
@@ -64,6 +65,8 @@ void MetricsLogger::flush() {
             << std::setprecision(4)
             << m.imbalance_ratio << ","
             << m.particles_migrated << ","
+            << m.particles_migrated_in << ","
+            << m.particles_migrated_out << ","
             << std::setprecision(10)
             << m.kinetic_energy << ","
             << m.potential_energy << "\n";
@@ -101,35 +104,55 @@ void MetricsLogger::finalize() {
 }
 
 // ============================================================================
-// Dump particle state to binary file for visualization
+// Dump particle state to binary file for visualization and CSV for inspection
 // Format: [int32 N] [N * Particle data as doubles + int]
+// CSV format: id,rank,x,y,z,vx,vy,vz,mass
 // ============================================================================
 void dump_particle_state(const std::string& output_dir, int timestep,
                           const std::vector<Particle>& particles) {
     std::string particles_dir = output_dir + "/particles";
     mkdir(particles_dir.c_str(), 0755);
 
+    // 1. Binary dump for high-performance 3D visualizer
     std::ostringstream fname;
     fname << particles_dir << "/step_" << std::setw(5) << std::setfill('0')
           << timestep << ".bin";
 
     std::ofstream out(fname.str(), std::ios::binary);
-    if (!out.is_open()) return;
+    if (out.is_open()) {
+        int32_t N = static_cast<int32_t>(particles.size());
+        out.write(reinterpret_cast<const char*>(&N), sizeof(N));
 
-    int32_t N = static_cast<int32_t>(particles.size());
-    out.write(reinterpret_cast<const char*>(&N), sizeof(N));
+        for (const auto& p : particles) {
+            // Write: x, y, z, vx, vy, vz, mass, owner_rank
+            out.write(reinterpret_cast<const char*>(&p.x), sizeof(double));
+            out.write(reinterpret_cast<const char*>(&p.y), sizeof(double));
+            out.write(reinterpret_cast<const char*>(&p.z), sizeof(double));
+            out.write(reinterpret_cast<const char*>(&p.vx), sizeof(double));
+            out.write(reinterpret_cast<const char*>(&p.vy), sizeof(double));
+            out.write(reinterpret_cast<const char*>(&p.vz), sizeof(double));
+            out.write(reinterpret_cast<const char*>(&p.mass), sizeof(double));
+            int32_t rank = p.owner_rank;
+            out.write(reinterpret_cast<const char*>(&rank), sizeof(int32_t));
+        }
+        out.close();
+    }
 
-    for (const auto& p : particles) {
-        // Write: x, y, z, vx, vy, vz, mass, owner_rank
-        out.write(reinterpret_cast<const char*>(&p.x), sizeof(double));
-        out.write(reinterpret_cast<const char*>(&p.y), sizeof(double));
-        out.write(reinterpret_cast<const char*>(&p.z), sizeof(double));
-        out.write(reinterpret_cast<const char*>(&p.vx), sizeof(double));
-        out.write(reinterpret_cast<const char*>(&p.vy), sizeof(double));
-        out.write(reinterpret_cast<const char*>(&p.vz), sizeof(double));
-        out.write(reinterpret_cast<const char*>(&p.mass), sizeof(double));
-        int32_t rank = p.owner_rank;
-        out.write(reinterpret_cast<const char*>(&rank), sizeof(int32_t));
+    // 2. Human-readable CSV dump with explicit star IDs and owner ranks
+    std::ostringstream csv_fname;
+    csv_fname << particles_dir << "/step_" << std::setw(5) << std::setfill('0')
+              << timestep << ".csv";
+    std::ofstream csv_out(csv_fname.str());
+    if (csv_out.is_open()) {
+        csv_out << "id,rank,x,y,z,vx,vy,vz,mass\n";
+        for (const auto& p : particles) {
+            csv_out << p.id << "," << p.owner_rank << ","
+                    << std::fixed << std::setprecision(6)
+                    << p.x << "," << p.y << "," << p.z << ","
+                    << p.vx << "," << p.vy << "," << p.vz << ","
+                    << std::setprecision(8) << p.mass << "\n";
+        }
+        csv_out.close();
     }
 }
 

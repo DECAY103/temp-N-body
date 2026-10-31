@@ -61,7 +61,9 @@ double gather_workloads(double local_workload,
 // Uses MPI_Alltoallv to distribute migrating particles to their new owners.
 double migrate_particles_mpi(std::vector<Particle>& local_particles,
                              const std::vector<int>& target_ranks,
-                             const MPIContext& ctx);
+                             const MPIContext& ctx,
+                             int* out_migrated_in = nullptr,
+                             int* out_migrated_out = nullptr);
 
 } // namespace albh
 

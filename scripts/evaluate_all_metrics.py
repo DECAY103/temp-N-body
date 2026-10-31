@@ -45,7 +45,10 @@ def read_metrics_csv(dir_path):
     if not csvs:
         return None
     latest_csv = max(csvs, key=os.path.getmtime)
-    return np.genfromtxt(latest_csv, delimiter=',', names=True)
+    data = np.genfromtxt(latest_csv, delimiter=',', names=True)
+    if data.ndim > 0 and 'rank' in data.dtype.names:
+        return data[data['rank'] == 0]
+    return data
 
 def main():
     parser = argparse.ArgumentParser(description="AL-BH Complete Metrics Evaluator")

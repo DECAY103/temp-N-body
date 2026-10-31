@@ -30,7 +30,9 @@ struct TimestepMetrics {
     double rebalance_time;
     double total_step_time;
     double imbalance_ratio;     // max_work / min_work (1.0 = perfect)
-    int particles_migrated;     // particles moved between ranks
+    int particles_migrated = 0;     // particles moved to this rank
+    int particles_migrated_in = 0;  // particles moved to this rank
+    int particles_migrated_out = 0; // particles moved away from this rank
     double kinetic_energy;      // for energy conservation tracking
     double potential_energy;
     int rank;                   // MPI rank that recorded this

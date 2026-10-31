@@ -2739,3 +2739,72 @@ events:
         
       exitCode: 0
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/res/miniconda3/lib/python3.13/site-packages/cmake/data/share/cmake-4.4/Modules/FindMPI.cmake:1447 (try_compile)"
+      - "/home/res/miniconda3/lib/python3.13/site-packages/cmake/data/share/cmake-4.4/Modules/FindMPI.cmake:1491 (_MPI_try_staged_settings)"
+      - "/home/res/miniconda3/lib/python3.13/site-packages/cmake/data/share/cmake-4.4/Modules/FindMPI.cmake:1814 (_MPI_check_lang_works)"
+      - "CMakeLists.txt:40 (find_package)"
+    description: "The MPI test test_mpi for CXX in mode normal"
+    directories:
+      source: "/home/res/Documents/PC/Project/build/CMakeFiles/CMakeScratch/TryCompile-KvG0ZU"
+      binary: "/home/res/Documents/PC/Project/build/CMakeFiles/CMakeScratch/TryCompile-KvG0ZU"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_CXX_STDLIB_MODULES_JSON: ""
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "MPI_RESULT_CXX_test_mpi_normal"
+      cached: true
+      stdout: |
+        Change Dir: '/home/res/Documents/PC/Project/build/CMakeFiles/CMakeScratch/TryCompile-KvG0ZU'
+        
+        Run Build Command(s): /home/res/miniconda3/lib/python3.13/site-packages/cmake/data/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_b3341/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_b3341.dir/build.make CMakeFiles/cmTC_b3341.dir/build
+        gmake[1]: Entering directory '/home/res/Documents/PC/Project/build/CMakeFiles/CMakeScratch/TryCompile-KvG0ZU'
+        Building CXX object CMakeFiles/cmTC_b3341.dir/test_mpi.cpp.o
+        /usr/bin/c++  -isystem /home/res/miniconda3/include -std=gnu++17 -pthread -o CMakeFiles/cmTC_b3341.dir/test_mpi.cpp.o -c /home/res/Documents/PC/Project/build/CMakeFiles/CMakeScratch/TryCompile-KvG0ZU/test_mpi.cpp
+        Linking CXX executable cmTC_b3341
+        /home/res/miniconda3/lib/python3.13/site-packages/cmake/data/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b3341.dir/link.txt --verbose=1
+        /usr/bin/c++ -Wl,--allow-shlib-undefined -Wl,-rpath -Wl,/home/res/miniconda3/lib -pthread CMakeFiles/cmTC_b3341.dir/test_mpi.cpp.o -o cmTC_b3341  -Wl,-rpath,/home/res/miniconda3/lib /home/res/miniconda3/lib/libmpi.so
+        gmake[1]: Leaving directory '/home/res/Documents/PC/Project/build/CMakeFiles/CMakeScratch/TryCompile-KvG0ZU'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/res/miniconda3/lib/python3.13/site-packages/cmake/data/share/cmake-4.4/Modules/FindMPI.cmake:1447 (try_compile)"
+      - "/home/res/miniconda3/lib/python3.13/site-packages/cmake/data/share/cmake-4.4/Modules/FindMPI.cmake:1841 (_MPI_try_staged_settings)"
+      - "CMakeLists.txt:40 (find_package)"
+    description: "The MPI test test_mpi for CXX in mode MPICXX"
+    directories:
+      source: "/home/res/Documents/PC/Project/build/CMakeFiles/CMakeScratch/TryCompile-GCQoVB"
+      binary: "/home/res/Documents/PC/Project/build/CMakeFiles/CMakeScratch/TryCompile-GCQoVB"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_CXX_STDLIB_MODULES_JSON: ""
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "MPI_RESULT_CXX_test_mpi_MPICXX"
+      cached: true
+      stdout: |
+        Change Dir: '/home/res/Documents/PC/Project/build/CMakeFiles/CMakeScratch/TryCompile-GCQoVB'
+        
+        Run Build Command(s): /home/res/miniconda3/lib/python3.13/site-packages/cmake/data/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_948d3/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_948d3.dir/build.make CMakeFiles/cmTC_948d3.dir/build
+        gmake[1]: Entering directory '/home/res/Documents/PC/Project/build/CMakeFiles/CMakeScratch/TryCompile-GCQoVB'
+        Building CXX object CMakeFiles/cmTC_948d3.dir/test_mpi.cpp.o
+        /usr/bin/c++  -isystem /home/res/miniconda3/include -std=gnu++17 -pthread -o CMakeFiles/cmTC_948d3.dir/test_mpi.cpp.o -c /home/res/Documents/PC/Project/build/CMakeFiles/CMakeScratch/TryCompile-GCQoVB/test_mpi.cpp
+        Linking CXX executable cmTC_948d3
+        /home/res/miniconda3/lib/python3.13/site-packages/cmake/data/bin/cmake -E cmake_link_script CMakeFiles/cmTC_948d3.dir/link.txt --verbose=1
+        /usr/bin/c++ -Wl,--allow-shlib-undefined -Wl,-rpath -Wl,/home/res/miniconda3/lib -pthread CMakeFiles/cmTC_948d3.dir/test_mpi.cpp.o -o cmTC_948d3  -Wl,-rpath,/home/res/miniconda3/lib /home/res/miniconda3/lib/libmpi.so
+        gmake[1]: Leaving directory '/home/res/Documents/PC/Project/build/CMakeFiles/CMakeScratch/TryCompile-GCQoVB'
+        
+      exitCode: 0
+...

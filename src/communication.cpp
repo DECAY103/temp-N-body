@@ -146,8 +146,12 @@ double gather_workloads(double local_workload,
 
 double migrate_particles_mpi(std::vector<Particle>& local_particles,
                              const std::vector<int>& target_ranks,
-                             const MPIContext& ctx) {
+                             const MPIContext& ctx,
+                             int* out_migrated_in,
+                             int* out_migrated_out) {
     if (ctx.size <= 1 || local_particles.empty()) {
+        if (out_migrated_in) *out_migrated_in = 0;
+        if (out_migrated_out) *out_migrated_out = 0;
         return 0.0;
     }
 
@@ -182,6 +186,13 @@ double migrate_particles_mpi(std::vector<Particle>& local_particles,
         r_bytes[r] = recv_counts[r] * sizeof(Particle);
         total_send += send_counts[r];
         total_recv += recv_counts[r];
+    }
+
+    if (out_migrated_in) {
+        *out_migrated_in = total_recv - recv_counts[ctx.rank];
+    }
+    if (out_migrated_out) {
+        *out_migrated_out = total_send - send_counts[ctx.rank];
     }
 
     // 4. Pack send buffer
@@ -243,7 +254,11 @@ double gather_workloads(double local_workload,
 
 double migrate_particles_mpi(std::vector<Particle>&,
                              const std::vector<int>&,
-                             const MPIContext&) {
+                             const MPIContext&,
+                             int* out_migrated_in,
+                             int* out_migrated_out) {
+    if (out_migrated_in) *out_migrated_in = 0;
+    if (out_migrated_out) *out_migrated_out = 0;
     return 0.0;
 }
 

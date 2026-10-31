@@ -313,7 +313,8 @@ void run_parallel_simulation(std::vector<Particle>& initial_particles,
 
         // 8. Dynamic Load Balancing Evaluation
         double rebalance_time = 0.0;
-        int migrated = 0;
+        int local_migrated_in = 0;
+        int local_migrated_out = 0;
         double current_imbalance = 1.0;
         double local_time = elapsed(t_force_start, t_force_end);
 
@@ -332,15 +333,21 @@ void run_parallel_simulation(std::vector<Particle>& initial_particles,
 
                 for (size_t i = 0; i < local_particles.size(); ++i) {
                     target_ranks[i] = find_owner_rank(local_particles[i].morton_key, new_parts);
-                    if (target_ranks[i] != ctx.rank) migrated++;
                 }
 
-                rebalance_time = migrate_particles_mpi(local_particles, target_ranks, ctx);
+                rebalance_time = migrate_particles_mpi(local_particles, target_ranks, ctx,
+                                                       &local_migrated_in, &local_migrated_out);
             } else {
                 auto res = lb.check_and_rebalance(local_particles, partitions, all_workloads, config.box_size);
-                migrated = res.particles_migrated;
+                local_migrated_in = res.particles_migrated;
+                local_migrated_out = res.particles_migrated;
                 rebalance_time = res.rebalance_time;
             }
+        }
+
+        // Ensure owner_rank on local particles matches this rank
+        for (auto& p : local_particles) {
+            p.owner_rank = ctx.rank;
         }
 
         auto t_step_end = wall_clock();
@@ -361,48 +368,81 @@ void run_parallel_simulation(std::vector<Particle>& initial_particles,
         #ifdef ENABLE_MPI
         if (ctx.size > 1) {
             int local_count = static_cast<int>(local_particles.size());
+            double local_tree_time = elapsed(t_tree_start, t_tree_end) + elapsed(t_sort_start, t_sort_end);
+
             std::vector<int> all_counts(ctx.size);
             std::vector<double> all_force_times(ctx.size);
+            std::vector<double> all_tree_times(ctx.size);
+            std::vector<int> all_migrated_in(ctx.size);
+            std::vector<int> all_migrated_out(ctx.size);
+
             MPI_Gather(&local_count, 1, MPI_INT, all_counts.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
             MPI_Gather(&local_time, 1, MPI_DOUBLE, all_force_times.data(), 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-            int local_migrated = migrated;
-            std::vector<int> all_migrated(ctx.size);
-            MPI_Gather(&local_migrated, 1, MPI_INT, all_migrated.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+            MPI_Gather(&local_tree_time, 1, MPI_DOUBLE, all_tree_times.data(), 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+            MPI_Gather(&local_migrated_in, 1, MPI_INT, all_migrated_in.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+            MPI_Gather(&local_migrated_out, 1, MPI_INT, all_migrated_out.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
 
             if (ctx.is_root()) {
                 int total_migrated = 0;
-                for (int r = 0; r < ctx.size; ++r) total_migrated += all_migrated[r];
+                for (int r = 0; r < ctx.size; ++r) total_migrated += all_migrated_in[r];
 
-                TimestepMetrics m;
-                m.timestep = step;
-                m.rank = 0;
-                m.local_particle_count = all_counts[0];
-                m.tree_build_time = elapsed(t_tree_start, t_tree_end) + elapsed(t_sort_start, t_sort_end);
-                m.force_compute_time = all_force_times[0];
-                m.comm_time = comm_time_total;
-                m.rebalance_time = rebalance_time;
-                m.total_step_time = elapsed(t_step_start, t_step_end);
-                m.imbalance_ratio = current_imbalance;
-                m.particles_migrated = total_migrated;
-                m.kinetic_energy = global_ke;
-                m.potential_energy = global_pe;
+                // Log a metrics row for EVERY MPI rank
+                for (int r = 0; r < ctx.size; ++r) {
+                    TimestepMetrics m;
+                    m.timestep = step;
+                    m.rank = r;
+                    m.local_particle_count = all_counts[r];
+                    m.tree_build_time = all_tree_times[r];
+                    m.force_compute_time = all_force_times[r];
+                    m.comm_time = comm_time_total;
+                    m.rebalance_time = rebalance_time;
+                    m.total_step_time = elapsed(t_step_start, t_step_end);
+                    m.imbalance_ratio = current_imbalance;
+                    m.particles_migrated = all_migrated_in[r];
+                    m.particles_migrated_in = all_migrated_in[r];
+                    m.particles_migrated_out = all_migrated_out[r];
+                    m.kinetic_energy = global_ke;
+                    m.potential_energy = global_pe;
 
-                logger.log_timestep(m);
+                    logger.log_timestep(m);
+                }
+
                 if (config.verbose) {
-                    MetricsLogger::print_timestep_summary(m, config.timesteps, N_total, config.theta);
-                    // Print per-rank breakdown
+                    TimestepMetrics m_root;
+                    m_root.timestep = step;
+                    m_root.rank = 0;
+                    m_root.local_particle_count = all_counts[0];
+                    m_root.tree_build_time = all_tree_times[0];
+                    m_root.force_compute_time = all_force_times[0];
+                    m_root.comm_time = comm_time_total;
+                    m_root.rebalance_time = rebalance_time;
+                    m_root.total_step_time = elapsed(t_step_start, t_step_end);
+                    m_root.imbalance_ratio = current_imbalance;
+                    m_root.particles_migrated = total_migrated;
+                    m_root.particles_migrated_in = all_migrated_in[0];
+                    m_root.particles_migrated_out = all_migrated_out[0];
+                    m_root.kinetic_energy = global_ke;
+                    m_root.potential_energy = global_pe;
+
+                    MetricsLogger::print_timestep_summary(m_root, config.timesteps, N_total, config.theta);
+
+                    // Print per-rank breakdown with particle count and migration in/out
                     std::cout << "  Per-rank: ";
                     for (int r = 0; r < ctx.size; ++r) {
                         std::cout << "[R" << r << ": n=" << all_counts[r]
+                                  << " mig_in=" << all_migrated_in[r]
+                                  << " mig_out=" << all_migrated_out[r]
                                   << " t=" << std::fixed << std::setprecision(4)
                                   << all_force_times[r] << "s] ";
                     }
                     std::cout << "\n";
                 }
-                if (config.dump_particles && (step % config.dump_interval == 0)) {
-                    // Re-gather for accurate post-update snapshot
-                    exchange_all_particles(local_particles, global_particles, ctx, false);
+            }
+
+            // Collective particle gather for visualizer / particle dumping
+            if (config.dump_particles && (step % config.dump_interval == 0)) {
+                exchange_all_particles(local_particles, global_particles, ctx, false);
+                if (ctx.is_root()) {
                     dump_particle_state(config.output_dir, step, global_particles);
                 }
             }
@@ -419,7 +459,9 @@ void run_parallel_simulation(std::vector<Particle>& initial_particles,
             m.rebalance_time = rebalance_time;
             m.total_step_time = elapsed(t_step_start, t_step_end);
             m.imbalance_ratio = current_imbalance;
-            m.particles_migrated = migrated;
+            m.particles_migrated = local_migrated_in;
+            m.particles_migrated_in = local_migrated_in;
+            m.particles_migrated_out = local_migrated_out;
             m.kinetic_energy = global_ke;
             m.potential_energy = global_pe;
 

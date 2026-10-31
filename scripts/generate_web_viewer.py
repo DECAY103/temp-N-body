@@ -42,6 +42,8 @@ def load_metrics(csv_path):
         # If single row, np.genfromtxt may produce a 0-d array
         if data.ndim == 0:
             data = np.array([data])
+        if 'rank' in data.dtype.names:
+            data = data[data['rank'] == 0]
         for i in range(len(data)):
             row = data[i]
             ke = float(row['kinetic_energy'])

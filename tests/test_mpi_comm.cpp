@@ -123,10 +123,13 @@ int main(int argc, char** argv) {
             target_ranks[i] = target;
         }
 
-        double mig_time = migrate_particles_mpi(local, target_ranks, ctx);
+        int in_count = 0, out_count = 0;
+        double mig_time = migrate_particles_mpi(local, target_ranks, ctx, &in_count, &out_count);
 
         // Every rank should now have received 10 particles from (rank - 1 + size) % size
         assert(static_cast<int>(local.size()) == 10);
+        assert(in_count == 10);
+        assert(out_count == 10);
         for (const auto& p : local) {
             assert(p.owner_rank == ctx.rank);
             (void)p;
